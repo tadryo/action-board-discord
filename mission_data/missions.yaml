@@ -1,0 +1,308 @@
+missions:
+  # ===== 学生チームについて知ろう =====
+  - slug: follow-x
+    title: チームみらい公式Xをフォローしよう
+    description: チームみらいの公式X（@team_mirai2025）をフォローして最新情報をチェック！
+    difficulty: 1
+    points: 10
+    submission_type: NONE
+    max_achievement_count: 1
+    category_slug: learn-student-team
+    is_hidden: false
+
+  - slug: visit-official-site
+    title: 公式サイトを確認しよう
+    description: チームみらいの公式サイトにアクセスして活動内容を確認しよう。
+    difficulty: 1
+    points: 10
+    submission_type: NONE
+    max_achievement_count: 1
+    category_slug: learn-student-team
+    is_hidden: false
+
+  - slug: read-manifesto
+    title: マニフェストを読もう
+    description: チームみらいのマニフェストを読んで政策を理解しよう。
+    difficulty: 2
+    points: 20
+    submission_type: NONE
+    max_achievement_count: 1
+    category_slug: learn-student-team
+    is_hidden: false
+
+  - slug: watch-youtube
+    title: チームみらいのYouTubeを視聴しよう
+    description: チームみらいの公式YouTubeチャンネルで動画を1本視聴しよう。
+    difficulty: 1
+    points: 15
+    submission_type: NONE
+    max_achievement_count: 5
+    category_slug: learn-student-team
+    is_hidden: false
+
+  # ===== Discordコミュニティを活用しよう =====
+  - slug: introduce-yourself
+    title: 自己紹介チャンネルに投稿しよう
+    description: Discordの自己紹介チャンネルに投稿して仲間と繋がろう！
+    difficulty: 1
+    points: 20
+    submission_type: NONE
+    max_achievement_count: 1
+    category_slug: join-discord
+    is_hidden: false
+
+  - slug: join-voice-channel
+    title: ボイスチャンネルに参加しよう
+    description: Discordのボイスチャンネルに参加して活動を体験しよう。
+    difficulty: 1
+    points: 15
+    submission_type: NONE
+    max_achievement_count: 3
+    category_slug: join-discord
+    is_hidden: false
+
+  - slug: help-member
+    title: 他のメンバーを助けよう
+    description: 質問チャンネルなどで他のメンバーの質問に答えたりサポートしよう。
+    difficulty: 2
+    points: 25
+    submission_type: TEXT
+    max_achievement_count: null
+    category_slug: join-discord
+    is_hidden: false
+
+  - slug: share-news
+    title: 政治ニュースをシェアしよう
+    description: Discordの情報共有チャンネルに気になったニュースや記事を投稿しよう。
+    difficulty: 2
+    points: 20
+    submission_type: LINK
+    max_achievement_count: null
+    category_slug: join-discord
+    is_hidden: false
+
+  # ===== クイズで学ぼう =====
+  - slug: quiz-anno-basic
+    title: 安野たかひろクイズに挑戦しよう（基礎編）
+    description: 安野たかひろさんの経歴や活動を学ぶクイズに挑戦！
+    difficulty: 2
+    points: 30
+    submission_type: NONE
+    max_achievement_count: 1
+    category_slug: learn-with-quiz
+    is_hidden: false
+
+  - slug: quiz-policy-basic
+    title: 政策クイズに挑戦しよう（基礎編）
+    description: チームみらいの政策についてのクイズで理解を深めよう。
+    difficulty: 2
+    points: 30
+    submission_type: NONE
+    max_achievement_count: 1
+    category_slug: learn-with-quiz
+    is_hidden: false
+
+  - slug: quiz-election-law
+    title: 選挙法クイズに挑戦しよう
+    description: 選挙に関する基本的な法律・ルールを学ぶクイズ。
+    difficulty: 3
+    points: 40
+    submission_type: NONE
+    max_achievement_count: 1
+    category_slug: learn-with-quiz
+    is_hidden: false
+
+  - slug: quiz-manifesto
+    title: マニフェストクイズに挑戦しよう
+    description: マニフェストの内容を深く理解するクイズ。
+    difficulty: 3
+    points: 40
+    submission_type: NONE
+    max_achievement_count: 1
+    category_slug: learn-with-quiz
+    is_hidden: false
+
+  # ===== 発信・拡散しよう =====
+  - slug: post-x
+    title: Xで応援投稿しよう
+    description: チームみらいへの応援や活動内容をXに投稿しよう。#チームみらい を付けてね！
+    difficulty: 2
+    points: 25
+    submission_type: LINK
+    max_achievement_count: null
+    category_slug: share-and-spread
+    is_hidden: false
+
+  - slug: repost-x
+    title: チームみらいの投稿をリポストしよう
+    description: 公式Xの投稿をリポスト（RT）して拡散しよう！
+    difficulty: 1
+    points: 10
+    submission_type: NONE
+    max_achievement_count: null
+    category_slug: share-and-spread
+    is_hidden: false
+
+  - slug: post-instagram
+    title: Instagramで応援投稿しよう
+    description: チームみらいへの応援をInstagramのストーリーやフィードに投稿しよう。
+    difficulty: 2
+    points: 25
+    submission_type: LINK
+    max_achievement_count: null
+    category_slug: share-and-spread
+    is_hidden: false
+
+  - slug: post-tiktok
+    title: TikTokで応援動画を投稿しよう
+    description: チームみらいへの応援動画をTikTokに投稿しよう！
+    difficulty: 4
+    points: 60
+    submission_type: LINK
+    max_achievement_count: null
+    category_slug: share-and-spread
+    is_hidden: false
+
+  - slug: create-original-content
+    title: オリジナルコンテンツを作って投稿しよう
+    description: チームみらいに関するオリジナルの画像・動画・記事などを作成して投稿しよう。
+    difficulty: 4
+    points: 70
+    submission_type: LINK
+    max_achievement_count: null
+    category_slug: share-and-spread
+    is_hidden: false
+
+  # ===== 仲間を招待しよう =====
+  - slug: invite-friend-discord
+    title: 友達をDiscordに招待しよう
+    description: 友達をチームみらい学生チームのDiscordサーバーに招待しよう。
+    difficulty: 2
+    points: 40
+    submission_type: TEXT
+    max_achievement_count: null
+    category_slug: invite-friends
+    is_hidden: false
+
+  - slug: invite-friend-volunteer
+    title: 友達をボランティアに誘おう
+    description: 友達を一緒にボランティア活動に誘って参加してもらおう。
+    difficulty: 3
+    points: 60
+    submission_type: TEXT
+    max_achievement_count: null
+    category_slug: invite-friends
+    is_hidden: false
+
+  # ===== イベントに参加しよう =====
+  - slug: join-online-event
+    title: オンラインイベントに参加しよう
+    description: チームみらいが開催するオンライン勉強会・説明会に参加しよう。
+    difficulty: 2
+    points: 35
+    submission_type: NONE
+    max_achievement_count: null
+    category_slug: join-events
+    is_hidden: false
+
+  - slug: join-offline-event
+    title: オフラインイベントに参加しよう
+    description: チームみらいが開催するリアルイベント・街頭活動に参加しよう。
+    difficulty: 3
+    points: 60
+    submission_type: TEXT
+    max_achievement_count: null
+    category_slug: join-events
+    is_hidden: false
+
+  - slug: join-mirai-kaigi
+    title: みらい会議に参加しよう
+    description: チームみらいが開催する政策議論イベント「みらい会議」に参加しよう。
+    difficulty: 3
+    points: 50
+    submission_type: NONE
+    max_achievement_count: null
+    category_slug: join-events
+    is_hidden: false
+
+  - slug: volunteer-event-staff
+    title: イベントスタッフとして参加しよう
+    description: チームみらいのイベント運営をスタッフとしてサポートしよう。
+    difficulty: 4
+    points: 80
+    submission_type: TEXT
+    max_achievement_count: null
+    category_slug: join-events
+    is_hidden: false
+
+  # ===== 政策を学ぼう =====
+  - slug: read-policy-education
+    title: 教育政策を読んでみよう
+    description: チームみらいの教育分野の政策を読んで感想や気づきをメモしよう。
+    difficulty: 2
+    points: 25
+    submission_type: TEXT
+    max_achievement_count: 1
+    category_slug: learn-policies
+    is_hidden: false
+
+  - slug: read-policy-digital
+    title: デジタル政策を読んでみよう
+    description: チームみらいのデジタル・AI分野の政策を読んで感想をまとめよう。
+    difficulty: 2
+    points: 25
+    submission_type: TEXT
+    max_achievement_count: 1
+    category_slug: learn-policies
+    is_hidden: false
+
+  - slug: read-policy-economy
+    title: 経済政策を読んでみよう
+    description: チームみらいの経済・財政分野の政策を読んで感想をまとめよう。
+    difficulty: 2
+    points: 25
+    submission_type: TEXT
+    max_achievement_count: 1
+    category_slug: learn-policies
+    is_hidden: false
+
+  - slug: watch-gikai
+    title: みらい議会を視聴しよう
+    description: チームみらいの議会活動を動画で視聴しよう。
+    difficulty: 2
+    points: 20
+    submission_type: NONE
+    max_achievement_count: null
+    category_slug: learn-policies
+    is_hidden: false
+
+  # ===== 投票しよう =====
+  - slug: vote-election
+    title: 選挙で投票しよう
+    description: 実際の選挙で投票しよう！投票は最大の政治参加です。
+    difficulty: 3
+    points: 100
+    submission_type: NONE
+    max_achievement_count: null
+    category_slug: vote
+    is_hidden: false
+
+  - slug: vote-early
+    title: 期日前投票をしよう
+    description: 期日前投票で一足先に投票しよう！当日忙しい人も安心。
+    difficulty: 3
+    points: 100
+    submission_type: NONE
+    max_achievement_count: null
+    category_slug: vote
+    is_hidden: false
+
+  - slug: encourage-vote
+    title: 家族・友達に投票を呼びかけよう
+    description: 周りの大切な人に投票を呼びかけて政治参加を広げよう。
+    difficulty: 2
+    points: 30
+    submission_type: TEXT
+    max_achievement_count: null
+    category_slug: vote
+    is_hidden: false

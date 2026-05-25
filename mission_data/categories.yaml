@@ -1,0 +1,32 @@
+categories:
+  - slug: learn-student-team
+    title: 学生チームについて知ろう
+    sort_no: 100
+
+  - slug: join-discord
+    title: Discordコミュニティを活用しよう
+    sort_no: 200
+
+  - slug: learn-with-quiz
+    title: クイズで学ぼう
+    sort_no: 300
+
+  - slug: share-and-spread
+    title: 発信・拡散しよう
+    sort_no: 400
+
+  - slug: invite-friends
+    title: 仲間を招待しよう
+    sort_no: 500
+
+  - slug: join-events
+    title: イベントに参加しよう
+    sort_no: 600
+
+  - slug: learn-policies
+    title: 政策を学ぼう
+    sort_no: 700
+
+  - slug: vote
+    title: 投票しよう
+    sort_no: 800
