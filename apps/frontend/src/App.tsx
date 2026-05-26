@@ -22,7 +22,7 @@ export default function App() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-mirai-bg text-mirai-text">
+    <div className="flex flex-col h-screen text-mirai-text" style={{ background: "var(--bg)" }}>
       <NavBar tab={tab} onTabChange={setTab} username={auth.user.username} />
       <main className="flex-1 overflow-y-auto">
         {tab === "missions" && <MissionsPage user={auth.user} accessToken={auth.accessToken!} />}
