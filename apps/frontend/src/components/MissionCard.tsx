@@ -28,6 +28,8 @@ export default function MissionCard({ mission, accessToken, onAchieved }: Props)
   const [showInput, setShowInput] = useState(false);
   const [done, setDone] = useState(false);
   const [limitError, setLimitError] = useState(false);
+  const [justRecorded, setJustRecorded] = useState(false);
+  const [failed, setFailed] = useState(false);
 
   const reachedMax =
     mission.max_achievement_count != null &&
@@ -47,6 +49,7 @@ export default function MissionCard({ mission, accessToken, onAchieved }: Props)
 
     setSubmitting(true);
     setLimitError(false);
+    setFailed(false);
     try {
       const res = await fetch("/api/achievements", {
         method: "POST",
@@ -69,9 +72,12 @@ export default function MissionCard({ mission, accessToken, onAchieved }: Props)
       setDone(true);
       setText("");
       setShowInput(false);
+      setJustRecorded(true);
+      setTimeout(() => setJustRecorded(false), 4000);
       onAchieved();
     } catch (err) {
       console.error(err);
+      setFailed(true);
     } finally {
       setSubmitting(false);
     }
@@ -127,9 +133,22 @@ export default function MissionCard({ mission, accessToken, onAchieved }: Props)
           <span className="badge">{mission.points}P</span>
         </div>
         {limitError && (
-          <p className="text-xs" style={{ color: "var(--danger, #dc2626)" }}>
+          <p className="text-xs" style={{ color: "#dc2626" }}>
             達成回数の上限に達しています
           </p>
+        )}
+        {failed && (
+          <p className="text-xs" style={{ color: "#dc2626" }}>
+            記録に失敗しました。もう一度お試しください。
+          </p>
+        )}
+        {justRecorded && (
+          <div
+            className="text-sm font-bold rounded-[10px] px-3 py-2 flex items-center gap-1.5"
+            style={{ background: "var(--primary-50)", color: "var(--primary-deep)" }}
+          >
+            ✓ 達成を記録しました！ +{mission.points}P
+          </div>
         )}
       </div>
 
