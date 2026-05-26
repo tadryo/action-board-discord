@@ -7,19 +7,19 @@ interface Props {
   onAchieved: () => void;
 }
 
-function DifficultyStars({ difficulty }: { difficulty: number }) {
-  return (
-    <span className="inline-flex items-center gap-0.5" title={`難易度 ${difficulty}`}>
-      {Array.from({ length: 5 }, (_, i) => (
-        <span
-          key={i}
-          className={i < difficulty ? "text-mirai-gold" : "text-mirai-border"}
-        >
-          ★
-        </span>
-      ))}
-    </span>
-  );
+const CATEGORY_EMOJI: Record<string, string> = {
+  "learn-student-team": "📚",
+  "join-discord": "💬",
+  "learn-with-quiz": "❓",
+  "share-and-spread": "📣",
+  "invite-friends": "🤝",
+  "join-events": "📅",
+  "learn-policies": "📖",
+  vote: "🗳️",
+};
+
+function difficultyStars(difficulty: number) {
+  return "⭐".repeat(Math.max(1, Math.min(5, difficulty)));
 }
 
 export default function MissionCard({ mission, accessToken, onAchieved }: Props) {
@@ -29,10 +29,17 @@ export default function MissionCard({ mission, accessToken, onAchieved }: Props)
   const [done, setDone] = useState(false);
   const [limitError, setLimitError] = useState(false);
 
-  const completed = mission.is_completed || done;
-  const canAchieve =
-    !mission.is_completed &&
-    (mission.max_achievement_count === null || mission.achievement_count < mission.max_achievement_count);
+  const reachedMax =
+    mission.max_achievement_count != null &&
+    mission.achievement_count >= mission.max_achievement_count;
+  const isDone = mission.achievement_count > 0 || done;
+
+  const buttonText = reachedMax
+    ? "ミッションクリア 🎉"
+    : isDone
+    ? "もう一回チャレンジ 🔥"
+    : "今すぐチャレンジ 🔥";
+  const buttonClass = reachedMax || isDone ? "btn btn-yellow" : "btn btn-primary";
 
   async function handleSubmit() {
     if (submitting) return;
@@ -70,77 +77,92 @@ export default function MissionCard({ mission, accessToken, onAchieved }: Props)
     }
   }
 
+  function onCtaClick() {
+    if (reachedMax) return;
+    if (mission.submission_type === "NONE") {
+      handleSubmit();
+    } else {
+      setShowInput((v) => !v);
+    }
+  }
+
   return (
-    <div
-      className={`bg-mirai-surface rounded-2xl p-4 border shadow-card flex flex-col transition-shadow ${
-        completed ? "border-mirai-primary/30" : "border-mirai-border hover:shadow-cardHover"
-      }`}
-    >
-      <div className="flex items-center justify-between gap-2 mb-2">
-        <DifficultyStars difficulty={mission.difficulty} />
-        <span className="bg-mirai-primarySoft text-mirai-primaryDark text-xs font-bold px-2.5 py-1 rounded-full">
-          +{mission.points}pt
-        </span>
+    <article className="mission-card" style={{ width: 300 }}>
+      <div className="flex gap-3.5 items-start">
+        <div className="flex flex-col items-center gap-1.5">
+          <div
+            className="avatar"
+            style={{ width: 72, height: 72, fontSize: 32 }}
+          >
+            {CATEGORY_EMOJI[mission.category_slug] ?? "🎯"}
+          </div>
+          {mission.max_achievement_count != null ? (
+            <div
+              className="text-[0.72rem] font-bold text-center"
+              style={{ color: reachedMax ? "var(--primary-deep)" : "var(--muted)" }}
+            >
+              {mission.achievement_count}/{mission.max_achievement_count}回
+            </div>
+          ) : mission.achievement_count > 0 ? (
+            <div className="text-[0.72rem] font-bold" style={{ color: "var(--primary-deep)" }}>
+              {mission.achievement_count}回達成
+            </div>
+          ) : null}
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="text-[1.05rem] leading-snug font-extrabold" style={{ color: "#1f2937" }}>
+            {mission.title}
+          </h3>
+        </div>
       </div>
 
-      <h3 className="font-bold text-base leading-snug text-mirai-text">{mission.title}</h3>
-      {mission.description && (
-        <p className="text-mirai-muted text-xs mt-1.5 leading-relaxed flex-1">{mission.description}</p>
-      )}
+      <div className="flex flex-col gap-2.5">
+        {mission.description && (
+          <p className="text-sm leading-relaxed" style={{ color: "#404040" }}>
+            {mission.description}
+          </p>
+        )}
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="badge-soft">難易度 {difficultyStars(mission.difficulty)}</span>
+          <span className="badge">{mission.points}P</span>
+        </div>
+        {limitError && (
+          <p className="text-xs" style={{ color: "var(--danger, #dc2626)" }}>
+            達成回数の上限に達しています
+          </p>
+        )}
+      </div>
 
-      {mission.max_achievement_count !== null && (
-        <p className="text-mirai-muted text-xs mt-2 font-medium">
-          {mission.achievement_count}/{mission.max_achievement_count}回達成
-        </p>
-      )}
-
-      {limitError && (
-        <p className="text-mirai-danger text-xs mt-2">達成回数の上限に達しています</p>
-      )}
-
-      {showInput && mission.submission_type !== "NONE" && !completed && (
+      {showInput && mission.submission_type !== "NONE" && !reachedMax && (
         <input
           type={mission.submission_type === "LINK" ? "url" : "text"}
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder={mission.submission_type === "LINK" ? "URLを入力..." : "内容を入力..."}
-          className="mt-3 w-full bg-mirai-bg border border-mirai-border rounded-lg px-3 py-2 text-sm text-mirai-text placeholder:text-mirai-muted focus:outline-none focus:border-mirai-primary focus:ring-2 focus:ring-mirai-primary/20"
+          className="w-full rounded-[10px] border px-3.5 py-2.5 text-sm bg-white focus:outline-none"
+          style={{ borderColor: "var(--border)" }}
         />
       )}
 
-      <div className="mt-3">
-        {completed ? (
-          <div className="w-full text-center bg-mirai-primarySoft text-mirai-primaryDark text-sm font-bold py-2.5 rounded-xl flex items-center justify-center gap-1.5">
-            <span>✓</span> 達成済み
-          </div>
-        ) : !canAchieve ? (
-          <div className="w-full text-center bg-mirai-bg text-mirai-muted text-sm font-medium py-2.5 rounded-xl">
-            達成済み
-          </div>
-        ) : showInput && mission.submission_type !== "NONE" ? (
-          <button
-            onClick={handleSubmit}
-            disabled={submitting || (mission.submission_type === "TEXT" && text.trim() === "")}
-            className="w-full bg-mirai-primary hover:bg-mirai-primaryDark disabled:opacity-50 text-white text-sm font-bold py-2.5 rounded-xl transition-colors"
-          >
-            {submitting ? "送信中..." : "送信する"}
-          </button>
-        ) : (
-          <button
-            onClick={() => {
-              if (mission.submission_type === "NONE") {
-                handleSubmit();
-              } else {
-                setShowInput(true);
-              }
-            }}
-            disabled={submitting}
-            className="w-full bg-mirai-primary hover:bg-mirai-primaryDark disabled:opacity-50 text-white text-sm font-bold py-2.5 rounded-xl transition-colors"
-          >
-            {submitting ? "..." : "今すぐチャレンジ🔥"}
-          </button>
-        )}
-      </div>
-    </div>
+      {showInput && mission.submission_type !== "NONE" && !reachedMax ? (
+        <button
+          className="btn btn-primary"
+          style={{ width: "100%", padding: "0.95rem 1rem", fontWeight: 800 }}
+          onClick={handleSubmit}
+          disabled={submitting || (mission.submission_type === "TEXT" && text.trim() === "")}
+        >
+          {submitting ? "登録中..." : "ミッション達成を記録"}
+        </button>
+      ) : (
+        <button
+          className={buttonClass}
+          style={{ width: "100%", padding: "0.95rem 1rem", fontWeight: 800 }}
+          onClick={onCtaClick}
+          disabled={submitting || reachedMax}
+        >
+          {submitting ? "..." : buttonText}
+        </button>
+      )}
+    </article>
   );
 }
