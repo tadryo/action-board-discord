@@ -12,7 +12,7 @@ if (!APP_ID || !BOT_TOKEN) {
 // type 4 = PRIMARY_ENTRY_POINT, handler 2 = DISCORD_LAUNCH_ACTIVITY
 // Discord 側が Activity 起動を処理するため、インタラクション受信サーバーは不要。
 const command = {
-  name: "アクションボード",
+  name: "action-board",
   description: "アクションボードを開く",
   type: 4,
   handler: 2,
@@ -20,13 +20,29 @@ const command = {
   contexts: [0, 1, 2], // 0=Guild, 1=BotDM, 2=PrivateChannel
 };
 
+const BASE = `https://discord.com/api/v10/applications/${APP_ID}/commands`;
+const HEADERS = {
+  Authorization: `Bot ${BOT_TOKEN}`,
+  "Content-Type": "application/json",
+};
+
 async function main() {
-  const res = await fetch(`https://discord.com/api/v10/applications/${APP_ID}/commands`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bot ${BOT_TOKEN}`,
-      "Content-Type": "application/json",
-    },
+  // Discord は Activities 有効化時に Entry Point コマンド(type 4)を自動生成する。
+  // アプリは type 4 を1つしか持てないため、既存があれば PATCH で更新する。
+  const listRes = await fetch(BASE, { headers: HEADERS });
+  if (!listRes.ok) {
+    console.error(`コマンド一覧の取得に失敗しました (HTTP ${listRes.status}):`, await listRes.text());
+    process.exit(1);
+  }
+  const existing = (await listRes.json()) as { id: string; type: number }[];
+  const entryPoint = existing.find((c) => c.type === 4);
+
+  const method = entryPoint ? "PATCH" : "POST";
+  const url = entryPoint ? `${BASE}/${entryPoint.id}` : BASE;
+
+  const res = await fetch(url, {
+    method,
+    headers: HEADERS,
     body: JSON.stringify(command),
   });
 
@@ -36,7 +52,7 @@ async function main() {
     process.exit(1);
   }
 
-  console.log("✓ スラッシュコマンドを登録しました:");
+  console.log(`✓ スラッシュコマンドを${entryPoint ? "更新" : "登録"}しました:`);
   console.log(`  /${command.name}`);
   console.log("グローバルコマンドは反映に最大1時間かかる場合があります。");
 }
