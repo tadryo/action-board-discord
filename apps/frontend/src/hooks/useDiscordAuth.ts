@@ -34,10 +34,8 @@ export function useDiscordAuth() {
     async function authenticate() {
       dispatch({ type: "LOADING" });
       try {
-        dispatch({ type: "ERROR", error: "DEBUG: ready()待機中..." });
         await discordSdk.ready();
 
-        dispatch({ type: "ERROR", error: "DEBUG: authorize()待機中..." });
         // Step 1: Discordに認可コードを要求
         const { code } = await discordSdk.commands.authorize({
           client_id: import.meta.env.VITE_CLIENT_ID,
@@ -47,7 +45,6 @@ export function useDiscordAuth() {
           scope: ["identify", "guilds"],
         });
 
-        dispatch({ type: "ERROR", error: "DEBUG: /api/token呼び出し中..." });
         // Step 2: バックエンドでaccess_tokenに交換
         const res = await fetch("/api/token", {
           method: "POST",
@@ -58,14 +55,12 @@ export function useDiscordAuth() {
         if (!res.ok) throw new Error(`Token exchange failed: ${res.status}`);
         const { access_token } = (await res.json()) as { access_token: string };
 
-        dispatch({ type: "ERROR", error: "DEBUG: authenticate()待機中..." });
         // Step 3: Discord SDKで認証完了（SDK内部の状態を確定させるために必要）
         await discordSdk.commands.authenticate({ access_token });
 
         // Step 4: guildId取得
         const guildId = discordSdk.guildId ?? "dm";
 
-        dispatch({ type: "ERROR", error: "DEBUG: /api/me呼び出し中..." });
         // Step 5: バックエンド経由でユーザーを登録・更新（service_roleでRLSを通過）
         const meRes = await fetch("/api/me", {
           method: "POST",
