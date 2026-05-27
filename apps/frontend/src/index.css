@@ -28,6 +28,26 @@
   --radius: 0.625rem;
   --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
   --shadow-soft-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+
+  /* shadcn/ui 互換エイリアス */
+  --background: #f6f2e8;
+  --foreground: #0a0a0a;
+  --primary-foreground: #ffffff;
+  --secondary: #f3f4f6;
+  --secondary-foreground: #0a0a0a;
+  --muted-color: #f3f4f6;
+  --muted-foreground: #525252;
+  --accent-color: #e2f6f3;
+  --accent-foreground: #0a0a0a;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --input: #e5e5e5;
+  --ring: #30baa7;
+
+  /* brand */
+  --TM-accent-light: #64d8c6;
+  --TM-gradient-end: #bcecd3;
+  --TM-secondary: #e2f6f3;
 }
 
 * {

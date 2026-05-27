@@ -1,25 +1,18 @@
 import { useState } from "react";
+import { motion } from "framer-motion";
+import { UsersRound } from "lucide-react";
+import clsx from "clsx";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { MissionIcon } from "@/features/missions/components/mission-icon";
+import MissionAchievementStatus from "@/features/missions/components/mission-achievement-status";
 import type { MissionWithAchievements } from "../types/database";
 
 interface Props {
   mission: MissionWithAchievements;
   accessToken: string;
   onAchieved: () => void;
-}
-
-const CATEGORY_EMOJI: Record<string, string> = {
-  "learn-student-team": "📚",
-  "join-discord": "💬",
-  "learn-with-quiz": "❓",
-  "share-and-spread": "📣",
-  "invite-friends": "🤝",
-  "join-events": "📅",
-  "learn-policies": "📖",
-  vote: "🗳️",
-};
-
-function difficultyStars(difficulty: number) {
-  return "⭐".repeat(Math.max(1, Math.min(5, difficulty)));
 }
 
 export default function MissionCard({ mission, accessToken, onAchieved }: Props) {
@@ -31,17 +24,24 @@ export default function MissionCard({ mission, accessToken, onAchieved }: Props)
   const [justRecorded, setJustRecorded] = useState(false);
   const [failed, setFailed] = useState(false);
 
-  const reachedMax =
+  const hasReachedMaxAchievements =
     mission.max_achievement_count != null &&
     mission.achievement_count >= mission.max_achievement_count;
-  const isDone = mission.achievement_count > 0 || done;
+  const userAchievementCount = mission.achievement_count;
+  const isDone = userAchievementCount > 0 || done;
 
-  const buttonText = reachedMax
-    ? "ミッションクリア 🎉"
-    : isDone
-    ? "もう一回チャレンジ 🔥"
-    : "今すぐチャレンジ 🔥";
-  const buttonClass = reachedMax || isDone ? "btn btn-yellow" : "btn btn-primary";
+  const iconUrl = mission.icon_url ?? undefined;
+
+  const CATEGORY_EMOJI: Record<string, string> = {
+    "learn-student-team": "📚",
+    "join-discord": "💬",
+    "learn-with-quiz": "❓",
+    "share-and-spread": "📣",
+    "invite-friends": "🤝",
+    "join-events": "📅",
+    "learn-policies": "📖",
+    vote: "🗳️",
+  };
 
   async function handleSubmit() {
     if (submitting) return;
@@ -84,7 +84,7 @@ export default function MissionCard({ mission, accessToken, onAchieved }: Props)
   }
 
   function onCtaClick() {
-    if (reachedMax) return;
+    if (hasReachedMaxAchievements) return;
     if (mission.submission_type === "NONE") {
       handleSubmit();
     } else {
@@ -93,95 +93,133 @@ export default function MissionCard({ mission, accessToken, onAchieved }: Props)
   }
 
   return (
-    <article className="mission-card" style={{ width: 300 }}>
-      <div className="flex gap-3.5 items-start">
-        <div className="flex flex-col items-center gap-1.5">
-          <div
-            className="avatar"
-            style={{ width: 72, height: 72, fontSize: 32 }}
-          >
-            {CATEGORY_EMOJI[mission.category_slug] ?? "🎯"}
+    <article style={{ width: 300 }}>
+      <Card>
+        <CardHeader className="relative">
+          <div className="flex items-center gap-4">
+            <div className="flex flex-col items-center justify-center">
+              <div className="w-20 h-20 rounded-full p-[3px]">
+                <div className="flex items-center justify-center w-full h-full rounded-full bg-white">
+                  {iconUrl ? (
+                    <MissionIcon src={iconUrl} alt={mission.title} size="md" />
+                  ) : (
+                    <span style={{ fontSize: 32 }}>
+                      {CATEGORY_EMOJI[mission.category_slug] ?? "🎯"}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <MissionAchievementStatus
+                hasReachedMaxAchievements={hasReachedMaxAchievements}
+                userAchievementCount={userAchievementCount}
+                maxAchievementCount={mission.max_achievement_count}
+              />
+            </div>
+            <div className="flex-1">
+              <CardTitle className="text-lg leading-tight mb-2 text-gray-900">
+                {mission.title}
+              </CardTitle>
+            </div>
           </div>
-          {mission.max_achievement_count != null ? (
+        </CardHeader>
+
+        <CardFooter className="flex flex-col items-stretch gap-4">
+          {/* mission description */}
+          {mission.description && (
+            <p className="text-sm leading-relaxed text-gray-600">{mission.description}</p>
+          )}
+
+          {/* stats row */}
+          <div className="flex flex-col items-start gap-1.5">
+            <div className="flex items-center">
+              <UsersRound className="size-4 mr-2" />
+              <span className="text-sm font-medium text-gray-700">
+                みんなで{(mission.total_achievements ?? 0).toLocaleString()}回達成
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge>
+                <span className="text-sm font-medium text-gray-700">難易度</span>
+                <span className="ml-1">{"⭐".repeat(mission.difficulty)}</span>
+              </Badge>
+              <Badge
+                className={clsx(
+                  mission.is_featured ? "bg-yellow-300/90 text-black" : "",
+                )}
+              >
+                <span className="text-sm font-medium text-gray-700">
+                  {mission.points}P
+                  {mission.is_featured && <span className="ml-1">x 2</span>}
+                </span>
+              </Badge>
+            </div>
+          </div>
+
+          {/* error / success feedback */}
+          {limitError && (
+            <p className="text-xs text-red-600">達成回数の上限に達しています</p>
+          )}
+          {failed && (
+            <p className="text-xs text-red-600">記録に失敗しました。もう一度お試しください。</p>
+          )}
+          {justRecorded && (
             <div
-              className="text-[0.72rem] font-bold text-center"
-              style={{ color: reachedMax ? "var(--primary-deep)" : "var(--muted)" }}
+              className="text-sm font-bold rounded-[10px] px-3 py-2 flex items-center gap-1.5"
+              style={{ background: "var(--primary-50)", color: "var(--primary-deep)" }}
             >
-              {mission.achievement_count}/{mission.max_achievement_count}回
+              ✓ 達成を記録しました！ +{mission.points}P
             </div>
-          ) : mission.achievement_count > 0 ? (
-            <div className="text-[0.72rem] font-bold" style={{ color: "var(--primary-deep)" }}>
-              {mission.achievement_count}回達成
-            </div>
-          ) : null}
-        </div>
-        <div className="flex-1 min-w-0">
-          <h3 className="text-[1.05rem] leading-snug font-extrabold" style={{ color: "#1f2937" }}>
-            {mission.title}
-          </h3>
-        </div>
-      </div>
+          )}
 
-      <div className="flex flex-col gap-2.5">
-        {mission.description && (
-          <p className="text-sm leading-relaxed" style={{ color: "#404040" }}>
-            {mission.description}
-          </p>
-        )}
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="badge-soft">難易度 {difficultyStars(mission.difficulty)}</span>
-          <span className="badge">{mission.points}P</span>
-        </div>
-        {limitError && (
-          <p className="text-xs" style={{ color: "#dc2626" }}>
-            達成回数の上限に達しています
-          </p>
-        )}
-        {failed && (
-          <p className="text-xs" style={{ color: "#dc2626" }}>
-            記録に失敗しました。もう一度お試しください。
-          </p>
-        )}
-        {justRecorded && (
-          <div
-            className="text-sm font-bold rounded-[10px] px-3 py-2 flex items-center gap-1.5"
-            style={{ background: "var(--primary-50)", color: "var(--primary-deep)" }}
-          >
-            ✓ 達成を記録しました！ +{mission.points}P
-          </div>
-        )}
-      </div>
+          {/* text input when submission is required */}
+          {showInput && mission.submission_type !== "NONE" && !hasReachedMaxAchievements && (
+            <input
+              type={mission.submission_type === "LINK" ? "url" : "text"}
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder={mission.submission_type === "LINK" ? "URLを入力..." : "内容を入力..."}
+              className="w-full rounded-[10px] border px-3.5 py-2.5 text-sm bg-white focus:outline-none"
+              style={{ borderColor: "var(--border)" }}
+            />
+          )}
 
-      {showInput && mission.submission_type !== "NONE" && !reachedMax && (
-        <input
-          type={mission.submission_type === "LINK" ? "url" : "text"}
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder={mission.submission_type === "LINK" ? "URLを入力..." : "内容を入力..."}
-          className="w-full rounded-[10px] border px-3.5 py-2.5 text-sm bg-white focus:outline-none"
-          style={{ borderColor: "var(--border)" }}
-        />
-      )}
-
-      {showInput && mission.submission_type !== "NONE" && !reachedMax ? (
-        <button
-          className="btn btn-primary"
-          style={{ width: "100%", padding: "0.95rem 1rem", fontWeight: 800 }}
-          onClick={handleSubmit}
-          disabled={submitting || (mission.submission_type === "TEXT" && text.trim() === "")}
-        >
-          {submitting ? "登録中..." : "ミッション達成を記録"}
-        </button>
-      ) : (
-        <button
-          className={buttonClass}
-          style={{ width: "100%", padding: "0.95rem 1rem", fontWeight: 800 }}
-          onClick={onCtaClick}
-          disabled={submitting || reachedMax}
-        >
-          {submitting ? "..." : buttonText}
-        </button>
-      )}
+          {/* CTA button */}
+          {showInput && mission.submission_type !== "NONE" && !hasReachedMaxAchievements ? (
+            <motion.div whileTap={{ scale: 0.95 }}>
+              <Button
+                className="w-full py-6 text-base font-bold bg-primary hover:bg-primary/90 text-white border-none"
+                onClick={handleSubmit}
+                disabled={submitting || (mission.submission_type === "TEXT" && text.trim() === "")}
+              >
+                {submitting ? "登録中..." : "ミッション達成を記録"}
+              </Button>
+            </motion.div>
+          ) : (
+            <motion.div whileTap={{ scale: 0.95 }}>
+              <Button
+                className={clsx(
+                  "w-full py-6 text-base font-bold border-none",
+                  hasReachedMaxAchievements
+                    ? "bg-yellow-300 hover:bg-yellow-300/90 text-black"
+                    : isDone
+                    ? "bg-yellow-300 hover:bg-yellow-300/90 text-black"
+                    : "bg-primary hover:bg-primary/90 text-white",
+                )}
+                onClick={onCtaClick}
+                disabled={submitting || hasReachedMaxAchievements}
+              >
+                {submitting
+                  ? "..."
+                  : hasReachedMaxAchievements
+                  ? "ミッションクリア🎉"
+                  : isDone
+                  ? "もう一回チャレンジ🔥"
+                  : "今すぐチャレンジ🔥"}
+              </Button>
+            </motion.div>
+          )}
+        </CardFooter>
+      </Card>
     </article>
   );
 }
