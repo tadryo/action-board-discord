@@ -4,15 +4,23 @@
   "private": true,
   "workspaces": [
     "apps/frontend",
-    "apps/backend"
+    "apps/backend",
+    "apps/web"
   ],
   "scripts": {
     "dev": "concurrently \"npm run dev -w apps/backend\" \"npm run dev -w apps/frontend\"",
+    "dev:web": "npm run dev -w apps/web",
     "build": "npm run build -w apps/frontend && npm run build -w apps/backend",
+    "build:web": "npm run build -w apps/web",
     "lint": "npm run lint -w apps/frontend && npm run lint -w apps/backend",
-    "typecheck": "npm run typecheck -w apps/frontend && npm run typecheck -w apps/backend"
+    "typecheck": "npm run typecheck -w apps/frontend && npm run typecheck -w apps/backend",
+    "typecheck:web": "npm run typecheck -w apps/web"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
+  },
+  "overrides": {
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0"
   }
 }
