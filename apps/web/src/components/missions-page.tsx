@@ -41,8 +41,10 @@ export default function MissionsPage({ user, accessToken }: Props) {
         }),
       );
       setCategories(categoriesRes.data as CategoryRow[]);
-    } catch {
-      setError("ミッションの読み込みに失敗しました");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : (typeof e === "object" && e !== null && "message" in e) ? String((e as { message: unknown }).message) : JSON.stringify(e);
+      console.error("missions load error:", e);
+      setError("ミッションの読み込みに失敗しました: " + msg);
     } finally {
       setLoading(false);
     }
