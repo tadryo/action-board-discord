@@ -1,0 +1,37 @@
+"use client";
+
+type Tab = "missions" | "leaderboard" | "profile";
+
+interface Props {
+  tab: Tab;
+  onTabChange: (t: Tab) => void;
+  username: string;
+}
+
+const tabs: { id: Tab; label: string; icon: string }[] = [
+  { id: "missions",    label: "ミッション",   icon: "🎯" },
+  { id: "leaderboard", label: "ランキング",   icon: "🏆" },
+  { id: "profile",     label: "プロフィール", icon: "👤" },
+];
+
+export default function NavBar({ tab, onTabChange, username }: Props) {
+  return (
+    <nav
+      className="flex items-center justify-between gap-2 px-4 py-2.5 bg-white"
+      style={{ borderBottom: "1px solid var(--border-soft)" }}
+    >
+      <span className="text-sm font-extrabold truncate max-w-[120px] flex items-center gap-1.5" style={{ color: "var(--fg)" }}>
+        <span style={{ color: "var(--primary)" }}>●</span>
+        {username}
+      </span>
+      <div className="tabs">
+        {tabs.map((t) => (
+          <button key={t.id} onClick={() => onTabChange(t.id)} className={`tab ${tab === t.id ? "active" : ""} flex items-center gap-1.5`}>
+            <span>{t.icon}</span>
+            <span className="hidden sm:inline">{t.label}</span>
+          </button>
+        ))}
+      </div>
+    </nav>
+  );
+}
