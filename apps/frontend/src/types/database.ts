@@ -28,6 +28,8 @@ export interface Database {
           max_achievement_count: number | null;
           category_slug: string;
           is_hidden: boolean;
+          icon_url: string | null;
+          is_featured: boolean;
         };
         Insert: Omit<Database["public"]["Tables"]["missions"]["Row"], "id">;
         Update: Partial<Database["public"]["Tables"]["missions"]["Insert"]>;
@@ -66,6 +68,7 @@ export type CategoryRow = Database["public"]["Tables"]["categories"]["Row"];
 export interface MissionWithAchievements extends MissionRow {
   achievement_count: number;
   is_completed: boolean;
+  total_achievements?: number;
 }
 
 export interface LeaderboardEntry {
