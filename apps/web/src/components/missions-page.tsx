@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useDiscordActions } from "@/components/discord-provider";
 import MissionCard from "@/components/mission-card";
 import type { CategoryRow, MissionRow, MissionWithAchievements, UserRow } from "@/types/database";
 
@@ -14,6 +15,7 @@ export default function MissionsPage({ user, accessToken }: Props) {
   const [categories, setCategories] = useState<CategoryRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { addPoints } = useDiscordActions();
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -57,7 +59,7 @@ export default function MissionsPage({ user, accessToken }: Props) {
   useEffect(() => { load(); }, [load]);
 
   // 達成記録後はその場でローカル更新（全件再取得・スピナーを出さない）
-  const handleAchieved = useCallback((missionId: string) => {
+  const handleAchieved = useCallback((missionId: string, pointsEarned: number) => {
     setMissions((prev) =>
       prev.map((m) => {
         if (m.id !== missionId) return m;
@@ -69,7 +71,8 @@ export default function MissionsPage({ user, accessToken }: Props) {
         };
       }),
     );
-  }, []);
+    addPoints(pointsEarned);
+  }, [addPoints]);
 
   if (loading) {
     return (
@@ -116,7 +119,7 @@ export default function MissionsPage({ user, accessToken }: Props) {
             </h2>
             <div className="h-scroll px-4">
               {items.map((m) => (
-                <MissionCard key={m.id} mission={m} accessToken={accessToken} onAchieved={() => handleAchieved(m.id)} />
+                <MissionCard key={m.id} mission={m} accessToken={accessToken} onAchieved={(pts) => handleAchieved(m.id, pts)} />
               ))}
               <div style={{ flex: "0 0 0.5rem" }} />
             </div>

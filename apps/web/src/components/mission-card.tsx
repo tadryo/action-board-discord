@@ -25,7 +25,7 @@ const CATEGORY_EMOJI: Record<string, string> = {
 interface Props {
   mission: MissionWithAchievements;
   accessToken: string;
-  onAchieved: () => void;
+  onAchieved: (pointsEarned: number) => void;
 }
 
 export default function MissionCard({ mission, accessToken, onAchieved }: Props) {
@@ -57,12 +57,13 @@ export default function MissionCard({ mission, accessToken, onAchieved }: Props)
       });
       if (res.status === 409) { setLimitError(true); return; }
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const row = await res.json().catch(() => null) as { points_earned?: number } | null;
       setDone(true);
       setText("");
       setShowInput(false);
       setJustRecorded(true);
       setTimeout(() => setJustRecorded(false), 4000);
-      onAchieved();
+      onAchieved(row?.points_earned ?? mission.points);
     } catch (err) {
       console.error(err);
       setFailed(true);

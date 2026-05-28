@@ -1,18 +1,22 @@
 "use client";
 
-import { createContext, useContext, useEffect, useReducer } from "react";
+import { createContext, useCallback, useContext, useEffect, useReducer } from "react";
 import type { AuthState, UserRow } from "@/types/database";
 
 type Action =
   | { type: "LOADING" }
   | { type: "SUCCESS"; user: UserRow; accessToken: string; guildId: string }
-  | { type: "ERROR"; error: string };
+  | { type: "ERROR"; error: string }
+  | { type: "ADD_POINTS"; delta: number };
 
 function reducer(state: AuthState, action: Action): AuthState {
   switch (action.type) {
     case "LOADING": return { ...state, status: "loading", error: null };
     case "SUCCESS": return { status: "authenticated", user: action.user, accessToken: action.accessToken, error: null, guildId: action.guildId };
     case "ERROR":   return { ...state, status: "error", error: action.error };
+    case "ADD_POINTS":
+      if (!state.user) return state;
+      return { ...state, user: { ...state.user, total_points: state.user.total_points + action.delta } };
   }
 }
 
@@ -20,8 +24,16 @@ const DiscordAuthContext = createContext<AuthState>({
   status: "idle", user: null, accessToken: null, error: null, guildId: "dm",
 });
 
+const DiscordActionsContext = createContext<{ addPoints: (delta: number) => void }>({
+  addPoints: () => {},
+});
+
 export function useDiscordAuth() {
   return useContext(DiscordAuthContext);
+}
+
+export function useDiscordActions() {
+  return useContext(DiscordActionsContext);
 }
 
 export function DiscordProvider({ children }: { children: React.ReactNode }) {
@@ -78,9 +90,13 @@ export function DiscordProvider({ children }: { children: React.ReactNode }) {
     return () => { cancelled = true; };
   }, []);
 
+  const addPoints = useCallback((delta: number) => dispatch({ type: "ADD_POINTS", delta }), []);
+
   return (
-    <DiscordAuthContext.Provider value={state}>
-      {children}
-    </DiscordAuthContext.Provider>
+    <DiscordActionsContext.Provider value={{ addPoints }}>
+      <DiscordAuthContext.Provider value={state}>
+        {children}
+      </DiscordAuthContext.Provider>
+    </DiscordActionsContext.Provider>
   );
 }
