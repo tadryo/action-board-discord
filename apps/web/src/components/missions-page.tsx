@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { supabase } from "@/lib/supabase-browser";
 import MissionCard from "@/components/mission-card";
 import type { CategoryRow, MissionRow, MissionWithAchievements, UserRow } from "@/types/database";
 
@@ -20,35 +19,39 @@ export default function MissionsPage({ user, accessToken }: Props) {
     setLoading(true);
     setError(null);
     try {
-      const [missionsRes, categoriesRes, achievementsRes] = await Promise.all([
-        supabase.from("missions").select("*").eq("is_hidden", false).order("category_slug"),
-        supabase.from("categories").select("*").order("sort_no"),
-        supabase.from("achievements").select("mission_id").eq("user_id", user.id),
+      const [missionsRes, achievementsRes] = await Promise.all([
+        fetch("/api/missions"),
+        fetch("/api/achievements", { headers: { Authorization: `Bearer ${accessToken}` } }),
       ]);
-      if (missionsRes.error) throw missionsRes.error;
-      if (categoriesRes.error) throw categoriesRes.error;
-      if (achievementsRes.error) throw achievementsRes.error;
+      if (!missionsRes.ok) throw new Error(`missions ${missionsRes.status}`);
+      if (!achievementsRes.ok) throw new Error(`achievements ${achievementsRes.status}`);
 
-      const counts = (achievementsRes.data as { mission_id: string }[]).reduce<Record<string, number>>((acc, a) => {
+      const { missions: missionRows, categories: categoryRows } = await missionsRes.json() as {
+        missions: MissionRow[];
+        categories: CategoryRow[];
+      };
+      const achievements = await achievementsRes.json() as { mission_id: string }[];
+
+      const counts = achievements.reduce<Record<string, number>>((acc, a) => {
         acc[a.mission_id] = (acc[a.mission_id] ?? 0) + 1;
         return acc;
       }, {});
 
       setMissions(
-        (missionsRes.data as MissionRow[]).map((m) => {
+        missionRows.map((m) => {
           const count = counts[m.id] ?? 0;
           return { ...m, achievement_count: count, is_completed: m.max_achievement_count !== null && count >= m.max_achievement_count };
         }),
       );
-      setCategories(categoriesRes.data as CategoryRow[]);
+      setCategories(categoryRows);
     } catch (e) {
-      const msg = e instanceof Error ? e.message : (typeof e === "object" && e !== null && "message" in e) ? String((e as { message: unknown }).message) : JSON.stringify(e);
+      const msg = e instanceof Error ? e.message : JSON.stringify(e);
       console.error("missions load error:", e);
       setError("ミッションの読み込みに失敗しました: " + msg);
     } finally {
       setLoading(false);
     }
-  }, [user.id]);
+  }, [accessToken]);
 
   useEffect(() => { load(); }, [load]);
 

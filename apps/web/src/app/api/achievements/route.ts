@@ -31,6 +31,34 @@ async function getSupabaseUserId(accessToken: string): Promise<string | null> {
   return data?.id as string | null;
 }
 
+export async function GET(req: NextRequest) {
+  const authHeader = req.headers.get("authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const accessToken = authHeader.slice("Bearer ".length);
+
+  const userId = await getSupabaseUserId(accessToken);
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { data, error } = await getSupabaseAdmin()
+    .from("achievements")
+    .select("*, mission:missions(*)")
+    .eq("user_id", userId)
+    .order("achieved_at", { ascending: false })
+    .limit(100);
+
+  if (error) {
+    return NextResponse.json({ error: "Failed to fetch achievements" }, { status: 500 });
+  }
+
+  return NextResponse.json(data, {
+    headers: { "Cache-Control": "private, no-cache, no-store, must-revalidate" },
+  });
+}
+
 export async function POST(req: NextRequest) {
   const authHeader = req.headers.get("authorization");
   if (!authHeader?.startsWith("Bearer ")) {
