@@ -12,14 +12,14 @@ function avatarUrl(discordUserId: string, avatar: string | null) {
   return `https://cdn.discordapp.com/avatars/${discordUserId}/${avatar}.png?size=128`;
 }
 
-export default function ProfilePage({ user, accessToken }: { user: UserRow; accessToken: string }) {
+export default function ProfilePage({ user }: { user: UserRow }) {
   const [achievements, setAchievements] = useState<AchievementDetail[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch(`/api/achievements?t=${Date.now()}`, { cache: "no-store", headers: { Authorization: `Bearer ${accessToken}` } });
+        const res = await fetch(`/api/achievements?user_id=${user.id}&t=${Date.now()}`, { cache: "no-store" });
         if (res.ok) setAchievements(await res.json() as AchievementDetail[]);
       } catch (e) {
         console.error("achievements load error:", e);
@@ -28,7 +28,7 @@ export default function ProfilePage({ user, accessToken }: { user: UserRow; acce
       }
     }
     load();
-  }, [accessToken]);
+  }, [user.id]);
 
   return (
     <div className="p-4 max-w-lg mx-auto">

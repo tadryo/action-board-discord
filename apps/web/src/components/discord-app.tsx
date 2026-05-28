@@ -25,7 +25,7 @@ function AppContent() {
       <main style={{ flex: 1, overflowY: "auto" }}>
         {tab === "missions"    && <MissionsPage user={user} accessToken={accessToken} />}
         {tab === "leaderboard" && <LeaderboardPage guildId={guildId} currentUserId={user.discord_user_id} />}
-        {tab === "profile"     && <ProfilePage user={user} accessToken={accessToken} />}
+        {tab === "profile"     && <ProfilePage user={user} />}
       </main>
     </div>
   );
