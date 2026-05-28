@@ -17,7 +17,7 @@ export default function LeaderboardPage({ guildId, currentUserId }: { guildId: s
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch(`/api/leaderboard/${encodeURIComponent(guildId)}`);
+        const res = await fetch(`/api/leaderboard/${encodeURIComponent(guildId)}?t=${Date.now()}`, { cache: "no-store" });
         if (res.ok) setEntries(await res.json() as LeaderboardEntry[]);
       } catch (e) {
         console.error("leaderboard load error:", e);
