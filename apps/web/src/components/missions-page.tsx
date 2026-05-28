@@ -56,6 +56,21 @@ export default function MissionsPage({ user, accessToken }: Props) {
 
   useEffect(() => { load(); }, [load]);
 
+  // 達成記録後はその場でローカル更新（全件再取得・スピナーを出さない）
+  const handleAchieved = useCallback((missionId: string) => {
+    setMissions((prev) =>
+      prev.map((m) => {
+        if (m.id !== missionId) return m;
+        const count = m.achievement_count + 1;
+        return {
+          ...m,
+          achievement_count: count,
+          is_completed: m.max_achievement_count !== null && count >= m.max_achievement_count,
+        };
+      }),
+    );
+  }, []);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-48">
@@ -101,7 +116,7 @@ export default function MissionsPage({ user, accessToken }: Props) {
             </h2>
             <div className="h-scroll px-4">
               {items.map((m) => (
-                <MissionCard key={m.id} mission={m} accessToken={accessToken} onAchieved={load} />
+                <MissionCard key={m.id} mission={m} accessToken={accessToken} onAchieved={() => handleAchieved(m.id)} />
               ))}
               <div style={{ flex: "0 0 0.5rem" }} />
             </div>
