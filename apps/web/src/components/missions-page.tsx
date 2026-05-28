@@ -19,10 +19,10 @@ export default function MissionsPage({ user, accessToken }: Props) {
     setLoading(true);
     setError(null);
     try {
-      const cacheBust = `?t=${Date.now()}`;
+      const t = Date.now();
       const [missionsRes, achievementsRes] = await Promise.all([
-        fetch(`/api/missions${cacheBust}`, { cache: "no-store" }),
-        fetch(`/api/achievements${cacheBust}`, { cache: "no-store", headers: { Authorization: `Bearer ${accessToken}` } }),
+        fetch(`/api/missions?t=${t}`, { cache: "no-store" }),
+        fetch(`/api/achievements?user_id=${user.id}&t=${t}`, { cache: "no-store" }),
       ]);
       if (!missionsRes.ok) throw new Error(`missions ${missionsRes.status}`);
       if (!achievementsRes.ok) throw new Error(`achievements ${achievementsRes.status}`);
@@ -52,7 +52,7 @@ export default function MissionsPage({ user, accessToken }: Props) {
     } finally {
       setLoading(false);
     }
-  }, [accessToken]);
+  }, [user.id]);
 
   useEffect(() => { load(); }, [load]);
 

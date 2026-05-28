@@ -31,16 +31,12 @@ async function getSupabaseUserId(accessToken: string): Promise<string | null> {
   return data?.id as string | null;
 }
 
+// 達成履歴は公開読み取り可(RLS achievements_public_read)。
+// Discord トークン検証(外部 API 往復)を避け、user_id 指定で高速取得する。
 export async function GET(req: NextRequest) {
-  const authHeader = req.headers.get("authorization");
-  if (!authHeader?.startsWith("Bearer ")) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  const accessToken = authHeader.slice("Bearer ".length);
-
-  const userId = await getSupabaseUserId(accessToken);
-  if (!userId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const userId = req.nextUrl.searchParams.get("user_id");
+  if (!userId || !/^[0-9a-f-]{36}$/i.test(userId)) {
+    return NextResponse.json({ error: "Invalid user_id" }, { status: 400 });
   }
 
   const { data, error } = await getSupabaseAdmin()
