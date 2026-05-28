@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useDiscordAuth } from "@/components/discord-provider";
 import type { LeaderboardEntry } from "@/types/database";
 
 function avatarUrl(discordUserId: string, avatar: string | null) {
@@ -13,6 +14,20 @@ const RANK_BADGES = ["🥇", "🥈", "🥉"];
 export default function LeaderboardPage({ guildId, currentUserId }: { guildId: string; currentUserId: string }) {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useDiscordAuth();
+
+  // 自分の行は認証コンテキストの最新ポイント（楽観更新済み）で上書きし、再ソート・再採番する。
+  // これによりミッション/プロフィールのヘッダーとランキングの表示が常に一致する。
+  const rankedEntries = useMemo(() => {
+    const livePoints = user?.total_points;
+    const patched = entries.map((e) =>
+      e.discord_user_id === currentUserId && typeof livePoints === "number"
+        ? { ...e, total_points: livePoints }
+        : e,
+    );
+    patched.sort((a, b) => b.total_points - a.total_points);
+    return patched.map((e, i) => ({ ...e, rank: i + 1 }));
+  }, [entries, user?.total_points, currentUserId]);
 
   useEffect(() => {
     async function load() {
@@ -40,18 +55,18 @@ export default function LeaderboardPage({ guildId, currentUserId }: { guildId: s
   return (
     <div className="p-4 max-w-lg mx-auto">
       <h1 className="text-xl font-black mb-4">🏆 サーバーランキング</h1>
-      {entries.length === 0 ? (
+      {rankedEntries.length === 0 ? (
         <p className="text-sm text-center py-8" style={{ color: "var(--muted)" }}>まだデータがありません</p>
       ) : (
         <div className="card p-2 flex flex-col">
-          {entries.map((e, idx) => {
+          {rankedEntries.map((e, idx) => {
             const isMe = e.discord_user_id === currentUserId;
             return (
               <div key={e.discord_user_id}
                 className="flex items-center gap-3 px-3 py-2.5 rounded-xl"
                 style={{
                   background: isMe ? "var(--primary-50)" : "transparent",
-                  borderBottom: idx !== entries.length - 1 ? "1px solid var(--border-soft)" : "none",
+                  borderBottom: idx !== rankedEntries.length - 1 ? "1px solid var(--border-soft)" : "none",
                 }}>
                 <span className={`w-8 text-center font-extrabold ${e.rank <= 3 ? "text-lg" : "text-sm"}`}
                   style={{ color: e.rank > 3 ? "var(--muted)" : undefined }}>
