@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase-browser";
 import type { LeaderboardEntry } from "@/types/database";
 
 function avatarUrl(discordUserId: string, avatar: string | null) {
@@ -17,18 +16,14 @@ export default function LeaderboardPage({ guildId, currentUserId }: { guildId: s
 
   useEffect(() => {
     async function load() {
-      const { data, error } = await supabase
-        .from("users")
-        .select("discord_user_id, username, avatar, total_points")
-        .eq("guild_id", guildId)
-        .order("total_points", { ascending: false })
-        .limit(50);
-
-      if (!error && data) {
-        type Row = { discord_user_id: string; username: string; avatar: string | null; total_points: number };
-        setEntries((data as Row[]).map((u, i) => ({ rank: i + 1, ...u })));
+      try {
+        const res = await fetch(`/api/leaderboard/${encodeURIComponent(guildId)}`);
+        if (res.ok) setEntries(await res.json() as LeaderboardEntry[]);
+      } catch (e) {
+        console.error("leaderboard load error:", e);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     }
     load();
   }, [guildId]);

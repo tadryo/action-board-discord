@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase-browser";
 import type { AchievementRow, MissionRow, UserRow } from "@/types/database";
 
 interface AchievementDetail extends AchievementRow {
@@ -13,23 +12,23 @@ function avatarUrl(discordUserId: string, avatar: string | null) {
   return `https://cdn.discordapp.com/avatars/${discordUserId}/${avatar}.png?size=128`;
 }
 
-export default function ProfilePage({ user }: { user: UserRow }) {
+export default function ProfilePage({ user, accessToken }: { user: UserRow; accessToken: string }) {
   const [achievements, setAchievements] = useState<AchievementDetail[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
-      const { data, error } = await supabase
-        .from("achievements")
-        .select("*, mission:missions(*)")
-        .eq("user_id", user.id)
-        .order("achieved_at", { ascending: false })
-        .limit(30);
-      if (!error && data) setAchievements(data as AchievementDetail[]);
-      setLoading(false);
+      try {
+        const res = await fetch("/api/achievements", { headers: { Authorization: `Bearer ${accessToken}` } });
+        if (res.ok) setAchievements(await res.json() as AchievementDetail[]);
+      } catch (e) {
+        console.error("achievements load error:", e);
+      } finally {
+        setLoading(false);
+      }
     }
     load();
-  }, [user.id]);
+  }, [accessToken]);
 
   return (
     <div className="p-4 max-w-lg mx-auto">
