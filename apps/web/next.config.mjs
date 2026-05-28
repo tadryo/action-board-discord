@@ -1,12 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  webpack: (config, { isServer }) => {
-    if (isServer) {
-      const externals = Array.isArray(config.externals) ? config.externals : [];
-      config.externals = [...externals, "@discord/embedded-app-sdk"];
-    }
-    return config;
-  },
+  // Discord SDK はクライアント専用。サーバーバンドルから除外する（Turbopack 互換）。
+  serverExternalPackages: ["@discord/embedded-app-sdk"],
 };
 
 export default nextConfig;
