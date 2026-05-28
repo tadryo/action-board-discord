@@ -4,6 +4,8 @@
 
 [チームみらいボランティア向けアクションボード](https://github.com/team-mirai-volunteer/action-board) を参考に、学生チーム用にカスタマイズしました。
 
+> 🚀 手早く始めたい / ミッションを更新したい方は **[QUICKSTART.md](./QUICKSTART.md)** へ。
+
 ---
 
 ## 目次
@@ -138,6 +140,10 @@ npm install
 
 ### 2. 環境変数
 
+#### アプリ本体（Railway フロントエンドサービス）
+
+アプリを動かすにはこの 5 つを設定します。
+
 | 変数名 | 用途 |
 |---|---|
 | `NEXT_PUBLIC_DISCORD_CLIENT_ID` | Discord アプリの Client ID（ブラウザに公開） |
@@ -145,10 +151,11 @@ npm install
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon キー（ブラウザに公開） |
 | `DISCORD_CLIENT_SECRET` | Discord OAuth コード交換用（サーバー専用・秘匿） |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role キー（サーバー専用・秘匿） |
-| `DISCORD_BOT_TOKEN` | `register-commands` スクリプト実行時のみ必要 |
+
+> `PORT` は Railway が自動で注入するため設定不要です。
 
 - **本番（Railway）**: フロントエンドサービスの **Variables** に上記を設定します。環境変数ファイルは使いません。
-- **ローカル開発**: `apps/web/.env.local` を自分で作成して記述します（`.gitignore` 済み・初期状態では存在しません）。
+- **ローカル開発**: `apps/web/.env.local` を作成して記述します（`.gitignore` 済み・初期状態では存在しません）。
 
 ```bash
 # 例: ローカル開発用に apps/web/.env.local を作成
@@ -160,6 +167,17 @@ DISCORD_CLIENT_SECRET=
 SUPABASE_SERVICE_ROLE_KEY=
 EOF
 ```
+
+#### 運用スクリプト実行時に必要な変数（最小限）
+
+スクリプトはアプリ本体の全変数を必要としません。
+
+| スクリプト | 必要な変数 |
+|---|---|
+| `sync-missions` | `NEXT_PUBLIC_SUPABASE_URL`（または `SUPABASE_URL`）, `SUPABASE_SERVICE_ROLE_KEY` |
+| `register-commands` | `NEXT_PUBLIC_DISCORD_CLIENT_ID`（または `DISCORD_CLIENT_ID`）, `DISCORD_BOT_TOKEN` |
+
+Railway を使っている場合、これらの値はすでにサービスの Variables に入っています。ローカルで実行するときは `apps/web/.env.local` に該当する変数だけ書けば十分です（[Railway CLI](https://docs.railway.app/develop/cli) があれば `railway run npm run sync-missions` で env を注入でき、ローカルに書かずに済みます）。
 
 ### 3. Discord Developer Portal の設定
 
@@ -209,14 +227,15 @@ cloudflared tunnel --url http://localhost:3000
 
 ## 運用スクリプト
 
-ミッション登録・コマンド登録は単発スクリプトで行います（常駐サーバーは不要）。`apps/web/.env.local` に環境変数が設定されている前提で、リポジトリのルートから実行できます。
+ミッション登録・コマンド登録は単発スクリプトで行います（常駐サーバーは不要）。リポジトリのルートから実行でき、必要な変数は [運用スクリプト実行時に必要な変数](#運用スクリプト実行時に必要な変数最小限) を参照してください（`apps/web/.env.local`、または `railway run` で注入）。
 
 ```bash
 # missions.yaml / categories.yaml を Supabase に同期
+#   必要: NEXT_PUBLIC_SUPABASE_URL（または SUPABASE_URL）, SUPABASE_SERVICE_ROLE_KEY
 npm run sync-missions
 
 # Discord のスラッシュコマンド（Activity 起動エントリ）を登録 / 更新
-#   ※ DISCORD_BOT_TOKEN が必要
+#   必要: NEXT_PUBLIC_DISCORD_CLIENT_ID（または DISCORD_CLIENT_ID）, DISCORD_BOT_TOKEN
 npm run register-commands
 ```
 
