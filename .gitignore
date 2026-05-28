@@ -147,3 +147,6 @@ vite.config.ts.timestamp-*
 
 # macOS
 .DS_Store
+
+# ミッション定義（内容を非公開にするため追跡しない）
+mission_data/

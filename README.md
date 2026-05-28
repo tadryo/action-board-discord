@@ -227,6 +227,8 @@ npm run register-commands
 
 `sync-missions` はカテゴリとミッションを `slug` で upsert します。ミッションの `category_slug` が `categories.yaml` に存在しない場合はエラーで停止します（不整合を防止）。
 
+> **Note**: `mission_data/` はミッション内容を非公開にするため `.gitignore` 済みで、リポジトリには含まれません（ローカルでのみ管理）。クローン環境では別途ファイルを用意してください。
+
 ## プロジェクト構成
 
 ```
@@ -245,7 +247,7 @@ npm run register-commands
 │       └── scripts/               # sync-missions / register-commands
 ├── supabase/
 │   └── migrations/                # DB スキーマ・シード・RPC
-├── mission_data/                  # ミッション定義（YAML）
+├── mission_data/                  # ミッション定義（YAML・非公開: .gitignore 済み / ローカル管理）
 └── README.md
 ```
 
