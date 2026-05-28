@@ -19,7 +19,7 @@ export default function ProfilePage({ user, accessToken }: { user: UserRow; acce
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch("/api/achievements", { headers: { Authorization: `Bearer ${accessToken}` } });
+        const res = await fetch(`/api/achievements?t=${Date.now()}`, { cache: "no-store", headers: { Authorization: `Bearer ${accessToken}` } });
         if (res.ok) setAchievements(await res.json() as AchievementDetail[]);
       } catch (e) {
         console.error("achievements load error:", e);
