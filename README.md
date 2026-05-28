@@ -24,8 +24,6 @@
 
 UI（Server / Client Components）と API（Route Handlers）を **Next.js の単一アプリ（`apps/web`）** に集約しています。ブラウザから Supabase を直接叩くと Discord Activity の iframe（CSP）でブロックされるため、データ取得はすべて同一オリジンの API ルート経由です。
 
-> **Note**: `apps/frontend`（Vite）と `apps/backend`（Express）は Next.js 移行前のレガシーです。本番は `apps/web` のみで動作します。
-
 ## セットアップ
 
 ### 1. 依存関係のインストール
@@ -91,12 +89,14 @@ cloudflared tunnel --url http://localhost:3000
 
 ミッションの登録・更新は単発スクリプトで行います（常駐サーバーは不要）。
 
-```bash
-# missions.yaml を Supabase に同期
-npm run sync-missions -w apps/backend
+`apps/web/.env.local` に環境変数が設定されている前提で、リポジトリのルートから実行できます。
 
-# Discord のスラッシュコマンドを登録
-npm run register-commands -w apps/backend
+```bash
+# missions.yaml / categories.yaml を Supabase に同期
+npm run sync-missions
+
+# Discord のスラッシュコマンドを登録（DISCORD_BOT_TOKEN が必要）
+npm run register-commands
 ```
 
 ## プロジェクト構成
@@ -104,9 +104,9 @@ npm run register-commands -w apps/backend
 ```
 .
 ├── apps/
-│   ├── web/               # Next.js 14（UI + API ルート）★本番
-│   ├── frontend/          # （レガシー）React + Vite
-│   └── backend/           # （レガシー）Express。スクリプトのみ利用
+│   └── web/               # Next.js 14（UI + API ルート + 運用スクリプト）
+│       ├── src/           # App Router・コンポーネント・API ルート
+│       └── scripts/       # sync-missions / register-commands
 ├── supabase/
 │   └── migrations/        # DB スキーマ・シードデータ
 ├── mission_data/          # ミッション定義 (YAML)

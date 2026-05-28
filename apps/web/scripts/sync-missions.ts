@@ -1,12 +1,22 @@
-import "dotenv/config";
+import { config } from "dotenv";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import yaml from "js-yaml";
-import { supabase } from "../lib/supabase";
+import { createClient } from "@supabase/supabase-js";
+
+config({ path: ".env.local" });
+config({ path: ".env" });
+
+const url = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
+const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+if (!url || !key) {
+  throw new Error("SUPABASE_URL (or NEXT_PUBLIC_SUPABASE_URL) and SUPABASE_SERVICE_ROLE_KEY must be set");
+}
+const supabase = createClient(url, key);
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const DATA_DIR = resolve(__dirname, "../../../../mission_data");
+const DATA_DIR = resolve(__dirname, "../../../mission_data");
 
 interface CategoryYaml {
   slug: string;
