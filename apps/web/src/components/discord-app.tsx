@@ -22,10 +22,18 @@ function AppContent() {
   return (
     <div style={{ minHeight: "100dvh", display: "flex", flexDirection: "column" }}>
       <NavBar tab={tab} onTabChange={setTab} username={user.username} />
+      {/* 各タブは常にマウントしたままにし、表示のみ切り替える。
+          起動時に全タブが裏で読み込まれるため、切り替え時は再取得もスピナーも発生しない。 */}
       <main style={{ flex: 1, overflowY: "auto" }}>
-        {tab === "missions"    && <MissionsPage user={user} accessToken={accessToken} />}
-        {tab === "leaderboard" && <LeaderboardPage guildId={guildId} currentUserId={user.discord_user_id} />}
-        {tab === "profile"     && <ProfilePage user={user} />}
+        <div style={{ display: tab === "missions" ? "block" : "none" }}>
+          <MissionsPage user={user} accessToken={accessToken} />
+        </div>
+        <div style={{ display: tab === "leaderboard" ? "block" : "none" }}>
+          <LeaderboardPage guildId={guildId} currentUserId={user.discord_user_id} />
+        </div>
+        <div style={{ display: tab === "profile" ? "block" : "none" }}>
+          <ProfilePage user={user} />
+        </div>
       </main>
     </div>
   );
