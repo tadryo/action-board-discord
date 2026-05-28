@@ -5,7 +5,7 @@ Discord 内で完結する、学生向けのゲーミフィケーション型ア
 
 <p>
   <img alt="Next.js" src="https://img.shields.io/badge/Next.js-16-black?logo=nextdotjs">
-  <img alt="React" src="https://img.shields.io/badge/React-19-149eca?logo=react&logoColor=white">
+  <img alt="React" src="https://img.shields.io/badge/React-19-20232a?logo=react&logoColor=61DAFB">
   <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5-3178c6?logo=typescript&logoColor=white">
   <img alt="Supabase" src="https://img.shields.io/badge/Supabase-PostgreSQL-3ecf8e?logo=supabase&logoColor=white">
   <img alt="Railway" src="https://img.shields.io/badge/Deploy-Railway-0b0d0e?logo=railway&logoColor=white">
