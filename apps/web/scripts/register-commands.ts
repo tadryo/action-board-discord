@@ -1,11 +1,13 @@
-import "dotenv/config";
-import fetch from "node-fetch";
+import { config } from "dotenv";
 
-const APP_ID = process.env.DISCORD_CLIENT_ID;
+config({ path: ".env.local" });
+config({ path: ".env" });
+
+const APP_ID = process.env.DISCORD_CLIENT_ID ?? process.env.NEXT_PUBLIC_DISCORD_CLIENT_ID;
 const BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
 
 if (!APP_ID || !BOT_TOKEN) {
-  console.error("DISCORD_CLIENT_ID と DISCORD_BOT_TOKEN を環境変数に設定してください。");
+  console.error("DISCORD_CLIENT_ID (or NEXT_PUBLIC_DISCORD_CLIENT_ID) と DISCORD_BOT_TOKEN を環境変数に設定してください。");
   process.exit(1);
 }
 
@@ -34,7 +36,18 @@ async function main() {
     console.error(`コマンド一覧の取得に失敗しました (HTTP ${listRes.status}):`, await listRes.text());
     process.exit(1);
   }
-  const existing = (await listRes.json()) as { id: string; type: number }[];
+  const existing = (await listRes.json()) as { id: string; type: number; name: string }[];
+
+  console.log("現在登録されているグローバルコマンド:");
+  if (existing.length === 0) {
+    console.log("  (なし)");
+  } else {
+    for (const c of existing) {
+      console.log(`  - /${c.name} (type ${c.type}, id ${c.id})`);
+    }
+  }
+  console.log("");
+
   const entryPoint = existing.find((c) => c.type === 4);
 
   const method = entryPoint ? "PATCH" : "POST";
