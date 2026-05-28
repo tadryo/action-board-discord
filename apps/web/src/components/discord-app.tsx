@@ -24,7 +24,7 @@ function AppContent() {
       <NavBar tab={tab} onTabChange={setTab} username={user.username} />
       {/* 各タブは常にマウントしたままにし、表示のみ切り替える。
           起動時に全タブが裏で読み込まれるため、切り替え時は再取得もスピナーも発生しない。 */}
-      <main style={{ flex: 1, overflowY: "auto" }}>
+      <main style={{ flex: 1, overflowY: "auto", paddingBottom: "env(safe-area-inset-bottom)" }}>
         <div style={{ display: tab === "missions" ? "block" : "none" }}>
           <MissionsPage user={user} accessToken={accessToken} />
         </div>

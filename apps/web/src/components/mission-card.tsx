@@ -79,16 +79,16 @@ export default function MissionCard({ mission, accessToken, onAchieved }: Props)
   }
 
   return (
-    <article style={{ width: 300 }}>
+    <article style={{ width: "clamp(230px, 72vw, 290px)" }}>
       <Card>
-        <CardHeader className="relative">
-          <div className="flex items-center gap-4">
+        <CardHeader className="relative p-4">
+          <div className="flex items-center gap-3">
             <div className="flex flex-col items-center justify-center">
-              <div className="w-20 h-20 rounded-full p-[3px]">
+              <div className="w-14 h-14 rounded-full p-[3px]">
                 <div className="flex items-center justify-center w-full h-full rounded-full bg-white">
                   {mission.icon_url
-                    ? <MissionIcon src={mission.icon_url} alt={mission.title} size="md" />
-                    : <span style={{ fontSize: 32 }}>{CATEGORY_EMOJI[mission.category_slug] ?? "🎯"}</span>}
+                    ? <MissionIcon src={mission.icon_url} alt={mission.title} size="sm" />
+                    : <span style={{ fontSize: 26 }}>{CATEGORY_EMOJI[mission.category_slug] ?? "🎯"}</span>}
                 </div>
               </div>
               <MissionAchievementStatus
@@ -98,12 +98,12 @@ export default function MissionCard({ mission, accessToken, onAchieved }: Props)
               />
             </div>
             <div className="flex-1">
-              <CardTitle className="text-lg leading-tight mb-2 text-gray-900">{mission.title}</CardTitle>
+              <CardTitle className="text-base leading-tight text-gray-900">{mission.title}</CardTitle>
             </div>
           </div>
         </CardHeader>
 
-        <CardFooter className="flex flex-col items-stretch gap-4">
+        <CardFooter className="flex flex-col items-stretch gap-3 p-4 pt-0">
           {mission.description && (
             <p className="text-sm leading-relaxed text-gray-600">{mission.description}</p>
           )}
@@ -151,7 +151,7 @@ export default function MissionCard({ mission, accessToken, onAchieved }: Props)
           {showInput && mission.submission_type !== "NONE" && !hasReachedMaxAchievements ? (
             <motion.div whileTap={{ scale: 0.95 }}>
               <Button
-                className="w-full py-6 text-base font-bold bg-primary hover:bg-primary/90 text-white border-none"
+                className="w-full py-4 text-base font-bold bg-primary hover:bg-primary/90 text-white border-none"
                 onClick={handleSubmit}
                 disabled={submitting || (mission.submission_type === "TEXT" && text.trim() === "")}
               >
@@ -162,7 +162,7 @@ export default function MissionCard({ mission, accessToken, onAchieved }: Props)
             <motion.div whileTap={{ scale: 0.95 }}>
               <Button
                 className={clsx(
-                  "w-full py-6 text-base font-bold border-none",
+                  "w-full py-4 text-base font-bold border-none",
                   hasReachedMaxAchievements || isDone
                     ? "bg-yellow-300 hover:bg-yellow-300/90 text-black"
                     : "bg-primary hover:bg-primary/90 text-white",
