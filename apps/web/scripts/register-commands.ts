@@ -22,7 +22,13 @@ const command = {
   contexts: [0, 1, 2], // 0=Guild, 1=BotDM, 2=PrivateChannel
 };
 
-const BASE = `https://discord.com/api/v10/applications/${APP_ID}/commands`;
+// DISCORD_GUILD_ID を指定すると、そのサーバー限定で登録する（反映が即時）。
+// 未指定ならグローバル登録（反映に最大1時間）。
+const GUILD_ID = process.env.DISCORD_GUILD_ID;
+const SCOPE = GUILD_ID ? `ギルド(${GUILD_ID})` : "グローバル";
+const BASE = GUILD_ID
+  ? `https://discord.com/api/v10/applications/${APP_ID}/guilds/${GUILD_ID}/commands`
+  : `https://discord.com/api/v10/applications/${APP_ID}/commands`;
 const HEADERS = {
   Authorization: `Bot ${BOT_TOKEN}`,
   "Content-Type": "application/json",
@@ -38,7 +44,8 @@ async function main() {
   }
   const existing = (await listRes.json()) as { id: string; type: number; name: string }[];
 
-  console.log("現在登録されているグローバルコマンド:");
+  console.log(`登録スコープ: ${SCOPE}`);
+  console.log("現在登録されているコマンド:");
   if (existing.length === 0) {
     console.log("  (なし)");
   } else {
@@ -65,9 +72,11 @@ async function main() {
     process.exit(1);
   }
 
-  console.log(`✓ スラッシュコマンドを${entryPoint ? "更新" : "登録"}しました:`);
+  console.log(`✓ スラッシュコマンドを${entryPoint ? "更新" : "登録"}しました（${SCOPE}）:`);
   console.log(`  /${command.name}`);
-  console.log("グローバルコマンドは反映に最大1時間かかる場合があります。");
+  console.log(GUILD_ID
+    ? "ギルドコマンドは即時反映されます（Discord を再読み込みしてください）。"
+    : "グローバルコマンドは反映に最大1時間かかる場合があります。");
 }
 
 main().catch((err) => {
