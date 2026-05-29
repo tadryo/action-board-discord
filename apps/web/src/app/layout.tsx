@@ -1,13 +1,15 @@
-import type { Metadata, Viewport } from "next";
+import type { Viewport } from "next";
 import "./globals.css";
-import { APP_NAME, APP_TAGLINE } from "@/lib/app-config";
+import { getAppSettings } from "@/lib/app-config";
 
-export const metadata: Metadata = {
-  title: APP_NAME,
-  description: APP_TAGLINE,
-};
+export async function generateMetadata() {
+  const { appName, appTagline } = await getAppSettings();
+  return {
+    title: appName,
+    description: appTagline,
+  };
+}
 
-// モバイル対応: 端末幅に合わせ、ノッチ等のセーフエリアまで描画する
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,

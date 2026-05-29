@@ -1,0 +1,5 @@
+app_settings:
+  - key: app_name
+    value: チームみらい学生チーム アクションボード
+  - key: app_tagline
+    value: 未来は明るいと信じられる国を、学生から。

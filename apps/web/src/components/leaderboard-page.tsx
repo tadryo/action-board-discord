@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useDiscordAuth } from "@/components/discord-provider";
-import type { LeaderboardEntry } from "@/types/database";
+import type { LeaderboardEntry, UserRow } from "@/types/database";
 
 function avatarUrl(discordUserId: string, avatar: string | null) {
   if (!avatar) return `https://cdn.discordapp.com/embed/avatars/${Number(discordUserId) % 5}.png`;
@@ -11,23 +10,21 @@ function avatarUrl(discordUserId: string, avatar: string | null) {
 
 const RANK_BADGES = ["🥇", "🥈", "🥉"];
 
-export default function LeaderboardPage({ guildId, currentUserId }: { guildId: string; currentUserId: string }) {
+export default function LeaderboardPage({ guildId, currentUser }: { guildId: string; currentUser: UserRow }) {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
-  const { user } = useDiscordAuth();
 
-  // 自分の行は認証コンテキストの最新ポイント（楽観更新済み）で上書きし、再ソート・再採番する。
-  // これによりミッション/プロフィールのヘッダーとランキングの表示が常に一致する。
+  // 自分の行は認証コンテキストの最新値（名前・アバター・ポイント）で上書きし、再ソート・再採番する。
+  // /api/leaderboard 由来の値が古くても、自分の表示はプロフィール/ナビと常に一致する。
   const rankedEntries = useMemo(() => {
-    const livePoints = user?.total_points;
     const patched = entries.map((e) =>
-      e.discord_user_id === currentUserId && typeof livePoints === "number"
-        ? { ...e, total_points: livePoints }
+      e.discord_user_id === currentUser.discord_user_id
+        ? { ...e, username: currentUser.username, avatar: currentUser.avatar, total_points: currentUser.total_points }
         : e,
     );
     patched.sort((a, b) => b.total_points - a.total_points);
     return patched.map((e, i) => ({ ...e, rank: i + 1 }));
-  }, [entries, user?.total_points, currentUserId]);
+  }, [entries, currentUser]);
 
   useEffect(() => {
     async function load() {
@@ -60,7 +57,7 @@ export default function LeaderboardPage({ guildId, currentUserId }: { guildId: s
       ) : (
         <div className="card p-2 flex flex-col">
           {rankedEntries.map((e, idx) => {
-            const isMe = e.discord_user_id === currentUserId;
+            const isMe = e.discord_user_id === currentUser.discord_user_id;
             return (
               <div key={e.discord_user_id}
                 className="flex items-center gap-3 px-3 py-2.5 rounded-xl"

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useDiscordActions } from "@/components/discord-provider";
-import { APP_NAME, APP_TAGLINE } from "@/lib/app-config";
+import { APP_NAME_DEFAULT, APP_TAGLINE_DEFAULT } from "@/lib/app-config";
 import MissionCard from "@/components/mission-card";
 import type { CategoryRow, MissionRow, MissionWithAchievements, UserRow } from "@/types/database";
 
@@ -16,7 +16,19 @@ export default function MissionsPage({ user, accessToken }: Props) {
   const [categories, setCategories] = useState<CategoryRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [appName, setAppName] = useState(APP_NAME_DEFAULT);
+  const [appTagline, setAppTagline] = useState(APP_TAGLINE_DEFAULT);
   const { recordAchievement } = useDiscordActions();
+
+  useEffect(() => {
+    fetch("/api/app-settings")
+      .then((r) => r.json())
+      .then((data: { app_name?: string; app_tagline?: string }) => {
+        if (data.app_name) setAppName(data.app_name);
+        if (data.app_tagline) setAppTagline(data.app_tagline);
+      })
+      .catch(() => {});
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -97,9 +109,9 @@ export default function MissionsPage({ user, accessToken }: Props) {
     <div className="pb-8">
       <div className="bg-gradient-hero px-5 pt-6 pb-7">
         <div className="max-w-3xl mx-auto">
-          <h1 className="text-2xl font-black" style={{ color: "#0a0a0a" }}>🎯 {APP_NAME}</h1>
+          <h1 className="text-2xl font-black" style={{ color: "#0a0a0a" }}>🎯 {appName}</h1>
           <p className="text-sm mt-1 font-semibold" style={{ color: "#0f766e" }}>
-            {APP_TAGLINE}
+            {appTagline}
           </p>
           <div className="mt-4 card p-4">
             <div className="flex items-center justify-between text-sm font-bold mb-1.5">

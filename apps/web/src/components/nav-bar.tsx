@@ -31,7 +31,7 @@ export default function NavBar({ tab, onTabChange, username }: Props) {
           : "calc(0.625rem + env(safe-area-inset-top))",
       }}
     >
-      <span className="text-sm font-extrabold truncate max-w-[120px] flex items-center gap-1.5" style={{ color: "var(--fg)" }}>
+      <span className="text-sm font-extrabold truncate max-w-[160px] flex items-center gap-1.5" style={{ color: "var(--fg)" }}>
         <span style={{ color: "var(--primary)" }}>●</span>
         {username}
       </span>

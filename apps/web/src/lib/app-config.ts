@@ -1,7 +1,24 @@
-// コミュニティごとの表示名・キャッチコピーを環境変数で設定できるようにする。
-// NEXT_PUBLIC_* はビルド時に埋め込まれるため、変更後は再ビルド（Railway は再デプロイ）が必要。
-export const APP_NAME =
-  process.env.NEXT_PUBLIC_APP_NAME?.trim() || "アクションボード";
+import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
-export const APP_TAGLINE =
-  process.env.NEXT_PUBLIC_APP_TAGLINE?.trim() || "アクションでポイントを貯めよう。";
+export const APP_NAME_DEFAULT = "アクションボード";
+export const APP_TAGLINE_DEFAULT = "アクションでポイントを貯めよう。";
+
+export async function getAppSettings(): Promise<{ appName: string; appTagline: string }> {
+  try {
+    const { data, error } = await getSupabaseAdmin()
+      .from("app_settings")
+      .select("key, value");
+
+    if (error) throw error;
+
+    const map: Record<string, string> = {};
+    for (const row of data ?? []) map[row.key] = row.value;
+
+    return {
+      appName: map["app_name"] ?? APP_NAME_DEFAULT,
+      appTagline: map["app_tagline"] ?? APP_TAGLINE_DEFAULT,
+    };
+  } catch {
+    return { appName: APP_NAME_DEFAULT, appTagline: APP_TAGLINE_DEFAULT };
+  }
+}

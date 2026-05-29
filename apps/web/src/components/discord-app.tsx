@@ -29,7 +29,7 @@ function AppContent() {
           <MissionsPage user={user} accessToken={accessToken} />
         </div>
         <div style={{ display: tab === "leaderboard" ? "block" : "none" }}>
-          <LeaderboardPage guildId={guildId} currentUserId={user.discord_user_id} />
+          <LeaderboardPage guildId={guildId} currentUser={user} />
         </div>
         <div style={{ display: tab === "profile" ? "block" : "none" }}>
           <ProfilePage user={user} />

@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "sync-missions": "tsx scripts/sync-missions.ts",
+    "sync-app-settings": "tsx scripts/sync-app-settings.ts",
     "register-commands": "tsx scripts/register-commands.ts"
   },
   "dependencies": {
