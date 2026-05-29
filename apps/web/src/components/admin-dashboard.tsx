@@ -207,16 +207,19 @@ function MissionsManager() {
     load();
   }, [load]);
 
-  // 「みんなでやろう」カテゴリのみ管理対象
+  // 新規作成できるのは「みんなでやろう」（general）のみ。部門別は提案から作られる。
   const generalCategories = categories.filter((c) => c.group_key !== "dept");
+  const deptCategories = categories.filter((c) => c.group_key === "dept");
 
   if (loading) return <p className="text-sm" style={{ color: "#6b7280" }}>読み込み中…</p>;
 
   return (
     <div className="flex flex-col gap-6">
       {msg && <p className="text-sm" style={{ color: "#dc2626" }}>{msg}</p>}
-      <CreateMissionForm categories={generalCategories} onCreated={load} onError={setMsg} />
+
       <div className="flex flex-col gap-2">
+        <h3 className="font-bold text-sm" style={{ color: "#111827" }}>みんなでやろう</h3>
+        <CreateMissionForm categories={generalCategories} onCreated={load} onError={setMsg} />
         {generalCategories.map((c) => (
           <CategoryFolder
             key={c.slug}
@@ -230,6 +233,21 @@ function MissionsManager() {
           <p className="text-sm" style={{ color: "#6b7280" }}>カテゴリがありません。</p>
         )}
       </div>
+
+      {deptCategories.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <h3 className="font-bold text-sm" style={{ color: "#111827" }}>部門別ミッション</h3>
+          {deptCategories.map((c) => (
+            <CategoryFolder
+              key={c.slug}
+              category={c}
+              missions={missions.filter((m) => m.category_slug === c.slug)}
+              onSaved={load}
+              onError={setMsg}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
