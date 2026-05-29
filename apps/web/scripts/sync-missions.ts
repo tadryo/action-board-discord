@@ -22,6 +22,7 @@ interface CategoryYaml {
   slug: string;
   title: string;
   sort_no: number;
+  group_key: string;
 }
 
 interface MissionYaml {
@@ -44,6 +45,7 @@ function load<T>(file: string, key: string): T[] {
   }
   return items;
 }
+
 
 async function main() {
   const categories = load<CategoryYaml>("categories.yaml", "categories");
