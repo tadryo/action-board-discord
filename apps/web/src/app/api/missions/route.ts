@@ -26,5 +26,7 @@ export async function GET() {
     total_achievements: totals[m.id] ?? 0,
   }));
 
-  return NextResponse.json({ missions, categories: categoriesRes.data });
+  return NextResponse.json({ missions, categories: categoriesRes.data }, {
+    headers: { "Cache-Control": "private, no-cache, no-store, must-revalidate" },
+  });
 }

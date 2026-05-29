@@ -28,5 +28,7 @@ export async function GET(
   }
 
   const ranked = data.map((u, i) => ({ rank: i + 1, ...u }));
-  return NextResponse.json(ranked);
+  return NextResponse.json(ranked, {
+    headers: { "Cache-Control": "private, no-cache, no-store, must-revalidate" },
+  });
 }
