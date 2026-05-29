@@ -15,7 +15,7 @@ export default function MissionsPage({ user, accessToken }: Props) {
   const [categories, setCategories] = useState<CategoryRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { addPoints } = useDiscordActions();
+  const { recordAchievement } = useDiscordActions();
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -71,8 +71,8 @@ export default function MissionsPage({ user, accessToken }: Props) {
         };
       }),
     );
-    addPoints(pointsEarned);
-  }, [addPoints]);
+    recordAchievement(pointsEarned);
+  }, [recordAchievement]);
 
   if (loading) {
     return (

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useDiscordActions } from "@/components/discord-provider";
 import type { AchievementRow, MissionRow, UserRow } from "@/types/database";
 
 interface AchievementDetail extends AchievementRow {
@@ -15,6 +16,7 @@ function avatarUrl(discordUserId: string, avatar: string | null) {
 export default function ProfilePage({ user }: { user: UserRow }) {
   const [achievements, setAchievements] = useState<AchievementDetail[]>([]);
   const [loading, setLoading] = useState(true);
+  const { achievementVersion } = useDiscordActions();
 
   useEffect(() => {
     async function load() {
@@ -28,7 +30,7 @@ export default function ProfilePage({ user }: { user: UserRow }) {
       }
     }
     load();
-  }, [user.id]);
+  }, [user.id, achievementVersion]);
 
   return (
     <div className="p-4 max-w-lg mx-auto">

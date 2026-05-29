@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useReducer } from "react";
+import { createContext, useCallback, useContext, useEffect, useReducer, useState } from "react";
 import type { AuthState, UserRow } from "@/types/database";
 
 type Action =
@@ -24,8 +24,16 @@ const DiscordAuthContext = createContext<AuthState>({
   status: "idle", user: null, accessToken: null, error: null, guildId: "dm",
 });
 
-const DiscordActionsContext = createContext<{ addPoints: (delta: number) => void }>({
-  addPoints: () => {},
+interface DiscordActions {
+  // 達成記録時に呼ぶ: ポイントを楽観更新し、達成バージョンを進める（履歴の再取得トリガー）
+  recordAchievement: (pointsEarned: number) => void;
+  // 達成のたびに増えるカウンタ。プロフィール等が達成履歴を再取得する依存値に使う
+  achievementVersion: number;
+}
+
+const DiscordActionsContext = createContext<DiscordActions>({
+  recordAchievement: () => {},
+  achievementVersion: 0,
 });
 
 export function useDiscordAuth() {
@@ -40,6 +48,7 @@ export function DiscordProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(reducer, {
     status: "loading", user: null, accessToken: null, error: null, guildId: "dm",
   });
+  const [achievementVersion, setAchievementVersion] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -90,10 +99,13 @@ export function DiscordProvider({ children }: { children: React.ReactNode }) {
     return () => { cancelled = true; };
   }, []);
 
-  const addPoints = useCallback((delta: number) => dispatch({ type: "ADD_POINTS", delta }), []);
+  const recordAchievement = useCallback((pointsEarned: number) => {
+    dispatch({ type: "ADD_POINTS", delta: pointsEarned });
+    setAchievementVersion((v) => v + 1);
+  }, []);
 
   return (
-    <DiscordActionsContext.Provider value={{ addPoints }}>
+    <DiscordActionsContext.Provider value={{ recordAchievement, achievementVersion }}>
       <DiscordAuthContext.Provider value={state}>
         {children}
       </DiscordAuthContext.Provider>
