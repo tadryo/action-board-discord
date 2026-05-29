@@ -38,3 +38,24 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   return NextResponse.json({ mission: data });
 }
+
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const guard = await requireAdmin(req, ["super", "developer"]);
+  if ("error" in guard) return guard.error;
+
+  const { id } = await params;
+  const { error } = await getSupabaseAdmin().from("missions").delete().eq("id", id);
+
+  if (error) {
+    // 達成記録が紐づくミッションは外部キー制約で削除できない（非表示を案内する）
+    if (error.code === "23503") {
+      return NextResponse.json(
+        { error: "達成記録があるため削除できません。非表示にしてください。" },
+        { status: 409 },
+      );
+    }
+    return NextResponse.json({ error: "削除に失敗しました" }, { status: 400 });
+  }
+
+  return NextResponse.json({ ok: true });
+}

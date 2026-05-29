@@ -401,6 +401,7 @@ function MissionRowEditor({ mission, onSaved, onError }: {
 }) {
   const apiFetch = useApiFetch();
   const [edit, setEdit] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [form, setForm] = useState({
     title: mission.title,
     description: mission.description ?? "",
@@ -410,6 +411,20 @@ function MissionRowEditor({ mission, onSaved, onError }: {
     max_achievement_count: mission.max_achievement_count?.toString() ?? "",
   });
   const [saving, setSaving] = useState(false);
+
+  const remove = async () => {
+    setSaving(true);
+    onError(null);
+    const res = await apiFetch(`/api/admin/missions/${mission.id}`, { method: "DELETE" });
+    setSaving(false);
+    if (res.ok) {
+      onSaved();
+    } else {
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      onError(data.error ?? "削除に失敗しました");
+      setConfirmDelete(false);
+    }
+  };
 
   const patch = async (body: Record<string, unknown>) => {
     setSaving(true);
@@ -440,12 +455,21 @@ function MissionRowEditor({ mission, onSaved, onError }: {
             <span className="badge-soft">{SUBMISSION_LABEL[mission.submission_type]}</span>
           </p>
         </div>
-        <div className="flex gap-3 shrink-0">
-          <button onClick={() => setEdit(true)} className="text-sm font-bold" style={{ color: "var(--primary-deep)" }}>編集</button>
-          <button disabled={saving} onClick={() => patch({ is_hidden: !mission.is_hidden })} className="text-sm font-bold" style={{ color: "var(--muted)" }}>
-            {mission.is_hidden ? "表示" : "非表示"}
-          </button>
-        </div>
+        {confirmDelete ? (
+          <div className="flex gap-2 shrink-0 items-center">
+            <span className="text-xs" style={{ color: "var(--muted)" }}>削除する？</span>
+            <button disabled={saving} onClick={remove} className="text-sm font-bold" style={{ color: "var(--destructive)" }}>はい</button>
+            <button onClick={() => setConfirmDelete(false)} className="text-sm font-bold" style={{ color: "var(--muted)" }}>いいえ</button>
+          </div>
+        ) : (
+          <div className="flex gap-3 shrink-0">
+            <button onClick={() => setEdit(true)} className="text-sm font-bold" style={{ color: "var(--primary-deep)" }}>編集</button>
+            <button disabled={saving} onClick={() => patch({ is_hidden: !mission.is_hidden })} className="text-sm font-bold" style={{ color: "var(--muted)" }}>
+              {mission.is_hidden ? "表示" : "非表示"}
+            </button>
+            <button onClick={() => setConfirmDelete(true)} className="text-sm font-bold" style={{ color: "var(--destructive)" }}>削除</button>
+          </div>
+        )}
       </div>
     );
   }
