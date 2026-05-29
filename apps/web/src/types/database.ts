@@ -46,6 +46,7 @@ export interface Database {
           slug: string;
           title: string;
           sort_no: number;
+          group_key: string;
         };
       };
     };

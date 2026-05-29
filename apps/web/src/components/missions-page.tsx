@@ -6,6 +6,27 @@ import { APP_NAME_DEFAULT, APP_TAGLINE_DEFAULT } from "@/lib/app-config";
 import MissionCard from "@/components/mission-card";
 import type { CategoryRow, MissionRow, MissionWithAchievements, UserRow } from "@/types/database";
 
+function CategorySection({ category, items, accessToken, onAchieved }: {
+  category: CategoryRow;
+  items: MissionWithAchievements[];
+  accessToken: string;
+  onAchieved: (id: string, pts: number) => void;
+}) {
+  return (
+    <section>
+      <h2 className="text-[1.05rem] font-extrabold px-5 mb-1.5" style={{ color: "#111827" }}>
+        {category.title}
+      </h2>
+      <div className="h-scroll px-4">
+        {items.map((m) => (
+          <MissionCard key={m.id} mission={m} accessToken={accessToken} onAchieved={(pts) => onAchieved(m.id, pts)} />
+        ))}
+        <div style={{ flex: "0 0 0.5rem" }} />
+      </div>
+    </section>
+  );
+}
+
 interface Props {
   user: UserRow;
   accessToken: string;
@@ -101,9 +122,11 @@ export default function MissionsPage({ user, accessToken }: Props) {
 
   const completedCount = missions.filter((m) => m.is_completed).length;
   const progress = missions.length > 0 ? Math.round((completedCount / missions.length) * 100) : 0;
-  const grouped = categories
+  const allGrouped = categories
     .map((c) => ({ category: c, items: missions.filter((m) => m.category_slug === c.slug) }))
     .filter((g) => g.items.length > 0);
+  const generalGroups = allGrouped.filter((g) => g.category.group_key !== "dept");
+  const deptGroups = allGrouped.filter((g) => g.category.group_key === "dept");
 
   return (
     <div className="pb-8">
@@ -126,19 +149,23 @@ export default function MissionsPage({ user, accessToken }: Props) {
       </div>
 
       <div className="max-w-3xl mx-auto pt-5 flex flex-col gap-7">
-        {grouped.map(({ category, items }) => (
-          <section key={category.slug}>
-            <h2 className="text-[1.05rem] font-extrabold px-5 mb-1.5" style={{ color: "#111827" }}>
-              {category.title}
-            </h2>
-            <div className="h-scroll px-4">
-              {items.map((m) => (
-                <MissionCard key={m.id} mission={m} accessToken={accessToken} onAchieved={(pts) => handleAchieved(m.id, pts)} />
-              ))}
-              <div style={{ flex: "0 0 0.5rem" }} />
-            </div>
-          </section>
+        {generalGroups.map(({ category, items }) => (
+          <CategorySection key={category.slug} category={category} items={items} accessToken={accessToken} onAchieved={handleAchieved} />
         ))}
+
+        {deptGroups.length > 0 && (
+          <>
+            <div className="flex items-center gap-3 px-5">
+              <div className="flex-1 h-px" style={{ background: "var(--border-soft)" }} />
+              <span className="text-xs font-extrabold tracking-widest" style={{ color: "var(--muted)" }}>部門タスク</span>
+              <div className="flex-1 h-px" style={{ background: "var(--border-soft)" }} />
+            </div>
+            {deptGroups.map(({ category, items }) => (
+              <CategorySection key={category.slug} category={category} items={items} accessToken={accessToken} onAchieved={handleAchieved} />
+            ))}
+          </>
+        )}
+
         {missions.length === 0 && (
           <p className="text-sm text-center py-8" style={{ color: "var(--muted)" }}>ミッションがありません</p>
         )}
