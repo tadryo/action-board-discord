@@ -1,12 +1,12 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { requireAdmin } from "@/lib/admin-guard";
 
 export const dynamic = "force-dynamic";
 
 // 管理側の提案一覧。dept は自部門のみ、super/developer は全部門。却下理由も含む。
-export async function GET() {
-  const guard = await requireAdmin();
+export async function GET(req: NextRequest) {
+  const guard = await requireAdmin(req);
   if ("error" in guard) return guard.error;
 
   let query = getSupabaseAdmin()

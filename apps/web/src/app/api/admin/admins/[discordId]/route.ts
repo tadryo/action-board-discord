@@ -4,8 +4,8 @@ import { requireAdmin } from "@/lib/admin-guard";
 
 export const dynamic = "force-dynamic";
 
-export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ discordId: string }> }) {
-  const guard = await requireAdmin(["super", "developer"]);
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ discordId: string }> }) {
+  const guard = await requireAdmin(req, ["super", "developer"]);
   if ("error" in guard) return guard.error;
 
   const { discordId } = await params;

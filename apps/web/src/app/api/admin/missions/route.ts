@@ -16,8 +16,8 @@ const missionSchema = z.object({
   category_slug: z.string().min(1),
 });
 
-export async function GET() {
-  const guard = await requireAdmin(["super", "developer"]);
+export async function GET(req: NextRequest) {
+  const guard = await requireAdmin(req, ["super", "developer"]);
   if ("error" in guard) return guard.error;
 
   const supabase = getSupabaseAdmin();
@@ -37,7 +37,7 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const guard = await requireAdmin(["super", "developer"]);
+  const guard = await requireAdmin(req, ["super", "developer"]);
   if ("error" in guard) return guard.error;
 
   const parsed = missionSchema.safeParse(await req.json().catch(() => null));

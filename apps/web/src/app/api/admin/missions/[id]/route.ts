@@ -16,7 +16,7 @@ const patchSchema = z.object({
 });
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const guard = await requireAdmin(["super", "developer"]);
+  const guard = await requireAdmin(req, ["super", "developer"]);
   if ("error" in guard) return guard.error;
 
   const { id } = await params;

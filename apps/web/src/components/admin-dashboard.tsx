@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import type { AdminRow, AdminScope, CategoryRow, DepartmentRow, MissionProposalRow, MissionRow, ProposalStatus, SubmissionType } from "@/types/database";
 
 const SUBMISSION_LABEL: Record<SubmissionType, string> = {
@@ -15,8 +15,25 @@ const SCOPE_OPTIONS: { value: AdminScope; label: string }[] = [
   { value: "developer", label: "開発者" },
 ];
 
+// アクティビティからは Bearer トークン、/admin からは Cookie で認証する。
+// トークンがあれば全リクエストに Authorization ヘッダを付ける。
+const TokenContext = createContext<string | undefined>(undefined);
+
+function useApiFetch() {
+  const token = useContext(TokenContext);
+  return useCallback(
+    (path: string, init?: RequestInit) => {
+      const headers = new Headers(init?.headers);
+      if (token) headers.set("Authorization", `Bearer ${token}`);
+      return fetch(path, { ...init, headers, cache: "no-store" });
+    },
+    [token],
+  );
+}
+
 interface Props {
   scope: AdminScope;
+  accessToken?: string;
 }
 
 type Tab = "proposals" | "missions" | "admins";
@@ -27,29 +44,31 @@ const TAB_LABEL: Record<Tab, string> = {
   admins: "メンバー権限",
 };
 
-export default function AdminDashboard({ scope }: Props) {
+export default function AdminDashboard({ scope, accessToken }: Props) {
   const canManage = scope === "super" || scope === "developer";
   const tabs: Tab[] = canManage ? ["proposals", "missions", "admins"] : ["proposals"];
   const [tab, setTab] = useState<Tab>("proposals");
 
   return (
-    <div>
-      <div className="flex gap-2 mb-5">
-        {tabs.map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className="px-4 py-1.5 rounded-full text-sm font-bold"
-            style={tab === t ? { background: "#0f766e", color: "#fff" } : { background: "#fff", color: "#6b7280", border: "1px solid #e5e7eb" }}
-          >
-            {TAB_LABEL[t]}
-          </button>
-        ))}
+    <TokenContext.Provider value={accessToken}>
+      <div>
+        <div className="flex gap-2 mb-5">
+          {tabs.map((t) => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className="px-4 py-1.5 rounded-full text-sm font-bold"
+              style={tab === t ? { background: "#0f766e", color: "#fff" } : { background: "#fff", color: "#6b7280", border: "1px solid #e5e7eb" }}
+            >
+              {TAB_LABEL[t]}
+            </button>
+          ))}
+        </div>
+        {tab === "proposals" && <ProposalsManager />}
+        {tab === "missions" && canManage && <MissionsManager />}
+        {tab === "admins" && canManage && <AdminsManager />}
       </div>
-      {tab === "proposals" && <ProposalsManager />}
-      {tab === "missions" && canManage && <MissionsManager />}
-      {tab === "admins" && canManage && <AdminsManager />}
-    </div>
+    </TokenContext.Provider>
   );
 }
 
@@ -60,6 +79,7 @@ const PROPOSAL_STATUS_LABEL: Record<ProposalStatus, string> = {
 };
 
 function ProposalsManager() {
+  const apiFetch = useApiFetch();
   const [proposals, setProposals] = useState<MissionProposalRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState<string | null>(null);
@@ -69,13 +89,13 @@ function ProposalsManager() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const res = await fetch("/api/admin/proposals", { cache: "no-store" });
+    const res = await apiFetch("/api/admin/proposals");
     if (res.ok) {
       const data = (await res.json()) as { proposals: MissionProposalRow[] };
       setProposals(data.proposals);
     }
     setLoading(false);
-  }, []);
+  }, [apiFetch]);
 
   useEffect(() => {
     load();
@@ -84,7 +104,7 @@ function ProposalsManager() {
   const act = async (id: string, body: Record<string, unknown>) => {
     setBusyId(id);
     setMsg(null);
-    const res = await fetch(`/api/admin/proposals/${id}`, {
+    const res = await apiFetch(`/api/admin/proposals/${id}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -165,6 +185,7 @@ function ProposalsManager() {
 }
 
 function MissionsManager() {
+  const apiFetch = useApiFetch();
   const [missions, setMissions] = useState<MissionRow[]>([]);
   const [categories, setCategories] = useState<CategoryRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -172,14 +193,14 @@ function MissionsManager() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const res = await fetch("/api/admin/missions", { cache: "no-store" });
+    const res = await apiFetch("/api/admin/missions");
     if (res.ok) {
       const data = (await res.json()) as { missions: MissionRow[]; categories: CategoryRow[] };
       setMissions(data.missions);
       setCategories(data.categories);
     }
     setLoading(false);
-  }, []);
+  }, [apiFetch]);
 
   useEffect(() => {
     load();
@@ -213,6 +234,7 @@ function CreateMissionForm({ categories, onCreated, onError }: {
   onCreated: () => void;
   onError: (m: string | null) => void;
 }) {
+  const apiFetch = useApiFetch();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
     slug: "",
@@ -229,7 +251,7 @@ function CreateMissionForm({ categories, onCreated, onError }: {
   const submit = async () => {
     setSaving(true);
     onError(null);
-    const res = await fetch("/api/admin/missions", {
+    const res = await apiFetch("/api/admin/missions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -295,6 +317,7 @@ function MissionRowEditor({ mission, onSaved, onError }: {
   onSaved: () => void;
   onError: (m: string | null) => void;
 }) {
+  const apiFetch = useApiFetch();
   const [edit, setEdit] = useState(false);
   const [form, setForm] = useState({
     title: mission.title,
@@ -309,7 +332,7 @@ function MissionRowEditor({ mission, onSaved, onError }: {
   const patch = async (body: Record<string, unknown>) => {
     setSaving(true);
     onError(null);
-    const res = await fetch(`/api/admin/missions/${mission.id}`, {
+    const res = await apiFetch(`/api/admin/missions/${mission.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -366,6 +389,7 @@ function MissionRowEditor({ mission, onSaved, onError }: {
 }
 
 function AdminsManager() {
+  const apiFetch = useApiFetch();
   const [admins, setAdmins] = useState<AdminRow[]>([]);
   const [departments, setDepartments] = useState<DepartmentRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -375,7 +399,7 @@ function AdminsManager() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const res = await fetch("/api/admin/admins", { cache: "no-store" });
+    const res = await apiFetch("/api/admin/admins");
     if (res.ok) {
       const data = (await res.json()) as { admins: AdminRow[]; departments: DepartmentRow[] };
       setAdmins(data.admins);
@@ -383,7 +407,7 @@ function AdminsManager() {
       setForm((f) => ({ ...f, department: f.department || data.departments[0]?.slug || "" }));
     }
     setLoading(false);
-  }, []);
+  }, [apiFetch]);
 
   useEffect(() => {
     load();
@@ -392,7 +416,7 @@ function AdminsManager() {
   const submit = async () => {
     setSaving(true);
     setMsg(null);
-    const res = await fetch("/api/admin/admins", {
+    const res = await apiFetch("/api/admin/admins", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -415,7 +439,7 @@ function AdminsManager() {
 
   const revoke = async (discordId: string) => {
     setMsg(null);
-    const res = await fetch(`/api/admin/admins/${discordId}`, { method: "DELETE" });
+    const res = await apiFetch(`/api/admin/admins/${discordId}`, { method: "DELETE" });
     if (res.ok) load();
     else {
       const data = (await res.json().catch(() => ({}))) as { error?: string };

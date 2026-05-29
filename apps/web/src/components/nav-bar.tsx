@@ -9,6 +9,7 @@ interface Props {
   tab: Tab;
   onTabChange: (t: Tab) => void;
   username: string;
+  onAdmin?: () => void;
 }
 
 const tabs: { id: Tab; label: string; icon: string }[] = [
@@ -17,7 +18,7 @@ const tabs: { id: Tab; label: string; icon: string }[] = [
   { id: "profile",     label: "プロフィール", icon: "👤" },
 ];
 
-export default function NavBar({ tab, onTabChange, username }: Props) {
+export default function NavBar({ tab, onTabChange, username, onAdmin }: Props) {
   const mobile = useMemo(() => isMobilePlatform(), []);
   return (
     <nav
@@ -42,6 +43,12 @@ export default function NavBar({ tab, onTabChange, username }: Props) {
             <span className="hidden sm:inline">{t.label}</span>
           </button>
         ))}
+        {onAdmin && (
+          <button onClick={onAdmin} className="tab flex items-center gap-1.5">
+            <span>🛠</span>
+            <span className="hidden sm:inline">承認</span>
+          </button>
+        )}
       </div>
     </nav>
   );

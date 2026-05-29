@@ -12,7 +12,7 @@ const actionSchema = z.discriminatedUnion("action", [
 ]);
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const guard = await requireAdmin();
+  const guard = await requireAdmin(req);
   if ("error" in guard) return guard.error;
 
   const { id } = await params;
