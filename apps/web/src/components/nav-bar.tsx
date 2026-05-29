@@ -14,7 +14,7 @@ interface Props {
 
 const tabs: { id: Tab; label: string; icon: string }[] = [
   { id: "missions",    label: "ミッション",   icon: "🎯" },
-  { id: "leaderboard", label: "ランキング",   icon: "🏆" },
+  { id: "leaderboard", label: "アクションリーダー", icon: "🏆" },
   { id: "profile",     label: "プロフィール", icon: "👤" },
 ];
 

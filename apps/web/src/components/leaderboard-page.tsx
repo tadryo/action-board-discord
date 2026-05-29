@@ -51,7 +51,7 @@ export default function LeaderboardPage({ guildId, currentUser }: { guildId: str
 
   return (
     <div className="p-4 max-w-lg mx-auto">
-      <h1 className="text-xl font-black mb-4">🏆 サーバーランキング</h1>
+      <h1 className="text-xl font-black mb-4">🏆 アクションリーダー</h1>
       {rankedEntries.length === 0 ? (
         <p className="text-sm text-center py-8" style={{ color: "var(--muted)" }}>まだデータがありません</p>
       ) : (

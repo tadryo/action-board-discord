@@ -24,6 +24,6 @@ export async function GET() {
     app_name: settings["app_name"] ?? "アクションボード",
     app_tagline: settings["app_tagline"] ?? "アクションでポイントを貯めよう。",
     group_label_general: settings["group_label_general"] ?? "みんなでやろう",
-    group_label_dept: settings["group_label_dept"] ?? "チームタスク",
+    group_label_dept: settings["group_label_dept"] ?? "部門別ミッション",
   });
 }

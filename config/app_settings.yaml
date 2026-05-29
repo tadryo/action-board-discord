@@ -6,4 +6,4 @@ app_settings:
   - key: group_label_general
     value: みんなでやろう
   - key: group_label_dept
-    value: チームタスク
+    value: 部門別ミッション

@@ -74,9 +74,21 @@ export default function AdminDashboard({ scope, accessToken, selfDiscordId }: Pr
             </button>
           ))}
         </div>
-        {tab === "proposals" && <ProposalsManager />}
-        {tab === "missions" && canManage && <MissionsManager />}
-        {tab === "admins" && canManage && <AdminsManager selfDiscordId={selfDiscordId} />}
+        {/* 全タブを常にマウントしたまま表示のみ切り替える。
+            起動時に裏で読み込まれるため、タブ移動時の再取得・スピナーが起きない。 */}
+        <div style={{ display: tab === "proposals" ? "block" : "none" }}>
+          <ProposalsManager />
+        </div>
+        {canManage && (
+          <>
+            <div style={{ display: tab === "missions" ? "block" : "none" }}>
+              <MissionsManager />
+            </div>
+            <div style={{ display: tab === "admins" ? "block" : "none" }}>
+              <AdminsManager selfDiscordId={selfDiscordId} />
+            </div>
+          </>
+        )}
       </div>
     </TokenContext.Provider>
   );
@@ -504,6 +516,11 @@ interface BoardMember {
   avatar: string | null;
 }
 
+function avatarUrl(discordUserId: string, avatar: string | null) {
+  if (!avatar) return `https://cdn.discordapp.com/embed/avatars/${Number(discordUserId) % 5}.png`;
+  return `https://cdn.discordapp.com/avatars/${discordUserId}/${avatar}.png?size=64`;
+}
+
 function AdminsManager({ selfDiscordId }: { selfDiscordId?: string | null }) {
   const apiFetch = useApiFetch();
   const [admins, setAdmins] = useState<AdminRow[]>([]);
@@ -612,10 +629,18 @@ function AdminsManager({ selfDiscordId }: { selfDiscordId?: string | null }) {
         <button disabled={saving || !form.discord_user_id} onClick={submit} className={`self-start ${primaryBtn}`}>{saving ? "保存中…" : "付与 / 更新"}</button>
       </div>
       <div className="flex flex-col gap-2">
-        {admins.map((a) => (
+        {admins.map((a) => {
+          const member = members.find((m) => m.discord_user_id === a.discord_user_id);
+          return (
           <div key={a.id} className="card p-3 flex items-center justify-between">
             <div className="flex items-center gap-3 min-w-0">
-              <span className="avatar w-9 h-9 text-sm">{(a.username ?? a.discord_user_id).slice(0, 1).toUpperCase()}</span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={avatarUrl(a.discord_user_id, member?.avatar ?? null)}
+                alt={a.username ?? a.discord_user_id}
+                className="w-9 h-9 rounded-full object-cover shrink-0"
+                onError={(ev) => { (ev.target as HTMLImageElement).src = "https://cdn.discordapp.com/embed/avatars/0.png"; }}
+              />
               <div className="min-w-0">
                 <p className="font-bold text-sm truncate" style={{ color: "var(--fg)" }}>{a.username ?? a.discord_user_id} <span className="font-normal" style={{ color: "var(--muted)" }}>{a.title}</span></p>
                 <p className="text-xs mt-0.5">
@@ -627,7 +652,8 @@ function AdminsManager({ selfDiscordId }: { selfDiscordId?: string | null }) {
               <button onClick={() => revoke(a.discord_user_id)} className="text-sm font-bold shrink-0" style={{ color: "var(--destructive)" }}>削除</button>
             )}
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
