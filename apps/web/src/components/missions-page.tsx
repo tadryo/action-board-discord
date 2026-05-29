@@ -39,15 +39,19 @@ export default function MissionsPage({ user, accessToken }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [appName, setAppName] = useState(APP_NAME_DEFAULT);
   const [appTagline, setAppTagline] = useState(APP_TAGLINE_DEFAULT);
+  const [groupLabelGeneral, setGroupLabelGeneral] = useState("みんなでやろう");
+  const [groupLabelDept, setGroupLabelDept] = useState("部門タスク");
   const [activeGroup, setActiveGroup] = useState<"general" | "dept">("general");
   const { recordAchievement } = useDiscordActions();
 
   useEffect(() => {
     fetch("/api/app-settings")
       .then((r) => r.json())
-      .then((data: { app_name?: string; app_tagline?: string }) => {
+      .then((data: { app_name?: string; app_tagline?: string; group_label_general?: string; group_label_dept?: string }) => {
         if (data.app_name) setAppName(data.app_name);
         if (data.app_tagline) setAppTagline(data.app_tagline);
+        if (data.group_label_general) setGroupLabelGeneral(data.group_label_general);
+        if (data.group_label_dept) setGroupLabelDept(data.group_label_dept);
       })
       .catch(() => {});
   }, []);
@@ -158,7 +162,7 @@ export default function MissionsPage({ user, accessToken }: Props) {
               ? { background: "var(--primary)", color: "#fff" }
               : { background: "var(--card-bg)", color: "var(--muted)", border: "1px solid var(--border-soft)" }}
           >
-            みんなでやろう
+            {groupLabelGeneral}
           </button>
           {deptGroups.length > 0 && (
             <button
@@ -168,7 +172,7 @@ export default function MissionsPage({ user, accessToken }: Props) {
                 ? { background: "var(--primary)", color: "#fff" }
                 : { background: "var(--card-bg)", color: "var(--muted)", border: "1px solid var(--border-soft)" }}
             >
-              部門タスク
+              {groupLabelDept}
             </button>
           )}
         </div>

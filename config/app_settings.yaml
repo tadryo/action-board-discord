@@ -3,3 +3,7 @@ app_settings:
     value: チームみらい学生チーム アクションボード
   - key: app_tagline
     value: 未来は明るいと信じられる国を、学生から。
+  - key: group_label_general
+    value: みんなでやろう
+  - key: group_label_dept
+    value: 部門タスク
