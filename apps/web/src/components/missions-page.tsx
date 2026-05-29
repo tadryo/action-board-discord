@@ -40,7 +40,7 @@ export default function MissionsPage({ user, accessToken }: Props) {
   const [appName, setAppName] = useState(APP_NAME_DEFAULT);
   const [appTagline, setAppTagline] = useState(APP_TAGLINE_DEFAULT);
   const [groupLabelGeneral, setGroupLabelGeneral] = useState("みんなでやろう");
-  const [groupLabelDept, setGroupLabelDept] = useState("部門タスク");
+  const [groupLabelDept, setGroupLabelDept] = useState("チームタスク");
   const [activeGroup, setActiveGroup] = useState<"general" | "dept">("general");
   const { recordAchievement } = useDiscordActions();
 
