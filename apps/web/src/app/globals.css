@@ -198,7 +198,11 @@ h1, h2, h3, h4, h5, h6 { font-weight: 800; margin: 0; }
   display: flex;
   gap: 0.75rem;
   overflow-x: auto;
-  scroll-snap-type: x mandatory;
+  /* mandatory だと読み込み時に最初のカードを左端へ強制スナップして
+     左 padding を食いつぶすため proximity に緩め、scroll-padding でスナップ
+     位置にも左余白を確保する */
+  scroll-snap-type: x proximity;
+  scroll-padding-left: 1.25rem;
   padding: 0.5rem 1.25rem 0.75rem;
   -webkit-overflow-scrolling: touch;
 }
