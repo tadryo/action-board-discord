@@ -15,8 +15,14 @@ const SCOPE_OPTIONS: { value: AdminScope; label: string }[] = [
   { value: "developer", label: "開発者" },
 ];
 
-// アクティビティからは Bearer トークン、/admin からは Cookie で認証する。
-// トークンがあれば全リクエストに Authorization ヘッダを付ける。
+// 共通スタイル（アクティビティ本体のデザイントークンに統一）
+const fieldClass = "block w-full mt-1 border rounded-lg px-3 py-2 text-sm font-normal bg-white";
+const fieldStyle = { borderColor: "var(--border)", color: "var(--fg)" } as const;
+const primaryBtn = "bg-gradient-primary text-white rounded-full px-4 py-2 text-sm font-bold transition-transform active:scale-95 disabled:opacity-50";
+const ghostBtn = "rounded-full px-4 py-2 text-sm font-bold transition-colors";
+const ghostBtnStyle = { background: "var(--secondary)", color: "var(--muted-fg)" } as const;
+
+// アクティビティからの Bearer トークンを全リクエストに付与する。
 const TokenContext = createContext<string | undefined>(undefined);
 
 function useApiFetch() {
@@ -45,6 +51,14 @@ const TAB_LABEL: Record<Tab, string> = {
   admins: "メンバー権限",
 };
 
+function Loading() {
+  return (
+    <div className="flex items-center justify-center h-32">
+      <div className="w-6 h-6 border-2 rounded-full animate-spin" style={{ borderColor: "var(--primary)", borderTopColor: "transparent" }} />
+    </div>
+  );
+}
+
 export default function AdminDashboard({ scope, accessToken, selfDiscordId }: Props) {
   const canManage = scope === "super" || scope === "developer";
   const tabs: Tab[] = canManage ? ["proposals", "missions", "admins"] : ["proposals"];
@@ -52,15 +66,10 @@ export default function AdminDashboard({ scope, accessToken, selfDiscordId }: Pr
 
   return (
     <TokenContext.Provider value={accessToken}>
-      <div>
-        <div className="flex gap-2 mb-5">
+      <div className="max-w-3xl mx-auto">
+        <div className="tabs mb-5 flex-wrap">
           {tabs.map((t) => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className="px-4 py-1.5 rounded-full text-sm font-bold"
-              style={tab === t ? { background: "#0f766e", color: "#fff" } : { background: "#fff", color: "#6b7280", border: "1px solid #e5e7eb" }}
-            >
+            <button key={t} onClick={() => setTab(t)} className={`tab ${tab === t ? "active" : ""}`}>
               {TAB_LABEL[t]}
             </button>
           ))}
@@ -121,60 +130,75 @@ function ProposalsManager() {
     }
   };
 
-  if (loading) return <p className="text-sm" style={{ color: "#6b7280" }}>読み込み中…</p>;
+  if (loading) return <Loading />;
 
   const pending = proposals.filter((p) => p.status === "pending");
   const history = proposals.filter((p) => p.status !== "pending");
 
   return (
     <div className="flex flex-col gap-6">
-      {msg && <p className="text-sm" style={{ color: "#dc2626" }}>{msg}</p>}
+      {msg && <p className="text-sm" style={{ color: "var(--destructive)" }}>{msg}</p>}
 
       <div>
-        <h3 className="font-bold text-sm mb-2" style={{ color: "#111827" }}>承認待ち（{pending.length}）</h3>
+        <h3 className="font-extrabold text-sm mb-2 flex items-center gap-2" style={{ color: "var(--fg)" }}>
+          承認待ち <span className="badge">{pending.length}</span>
+        </h3>
         <div className="flex flex-col gap-3">
           {pending.map((p) => (
             <div key={p.id} className="card p-4 flex flex-col gap-2">
-              <p className="font-bold text-sm" style={{ color: "#111827" }}>{p.title}</p>
-              {p.description && <p className="text-xs" style={{ color: "#6b7280" }}>{p.description}</p>}
-              <p className="text-xs" style={{ color: "#6b7280" }}>提案者: {p.proposed_by_username ?? p.proposed_by_discord_id}・難易度{p.difficulty}・{p.points}P</p>
+              <p className="font-bold text-sm" style={{ color: "var(--fg)" }}>{p.title}</p>
+              {p.description && <p className="text-xs" style={{ color: "var(--muted)" }}>{p.description}</p>}
+              <p className="text-xs flex flex-wrap gap-1.5">
+                <span className="badge-soft">提案者: {p.proposed_by_username ?? p.proposed_by_discord_id}</span>
+                <span className="badge-soft">難易度{p.difficulty}</span>
+                <span className="badge">{p.points}P</span>
+              </p>
               {rejecting === p.id ? (
                 <div className="flex flex-col gap-2">
                   <textarea
-                    className="border rounded px-2 py-1.5 text-sm"
+                    className="border rounded-lg px-3 py-2 text-sm bg-white"
+                    style={fieldStyle}
                     rows={3}
                     placeholder="却下理由を詳述（10文字以上・記録として保存されます）"
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
                   />
                   <div className="flex gap-2">
-                    <button disabled={busyId === p.id} onClick={() => act(p.id, { action: "reject", review_reason: reason })} className="px-3 py-1.5 rounded-lg font-bold text-white text-sm" style={{ background: "#dc2626" }}>却下を確定</button>
-                    <button onClick={() => { setRejecting(null); setReason(""); }} className="px-3 py-1.5 rounded-lg font-bold text-sm" style={{ background: "#f3f4f6", color: "#374151" }}>戻る</button>
+                    <button disabled={busyId === p.id} onClick={() => act(p.id, { action: "reject", review_reason: reason })} className="rounded-full px-4 py-2 font-bold text-white text-sm disabled:opacity-50" style={{ background: "var(--destructive)" }}>却下を確定</button>
+                    <button onClick={() => { setRejecting(null); setReason(""); }} className={ghostBtn} style={ghostBtnStyle}>戻る</button>
                   </div>
                 </div>
               ) : (
                 <div className="flex gap-2">
-                  <button disabled={busyId === p.id} onClick={() => act(p.id, { action: "approve" })} className="px-3 py-1.5 rounded-lg font-bold text-white text-sm" style={{ background: "#0f766e" }}>承認</button>
-                  <button onClick={() => { setRejecting(p.id); setReason(""); }} className="px-3 py-1.5 rounded-lg font-bold text-sm" style={{ background: "#fef2f2", color: "#dc2626" }}>却下</button>
+                  <button disabled={busyId === p.id} onClick={() => act(p.id, { action: "approve" })} className={primaryBtn}>承認</button>
+                  <button onClick={() => { setRejecting(p.id); setReason(""); }} className="rounded-full px-4 py-2 font-bold text-sm" style={{ background: "#fef2f2", color: "var(--destructive)" }}>却下</button>
                 </div>
               )}
             </div>
           ))}
-          {pending.length === 0 && <p className="text-sm" style={{ color: "#6b7280" }}>承認待ちの提案はありません。</p>}
+          {pending.length === 0 && <p className="text-sm" style={{ color: "var(--muted)" }}>承認待ちの提案はありません。</p>}
         </div>
       </div>
 
       {history.length > 0 && (
         <div>
-          <h3 className="font-bold text-sm mb-2" style={{ color: "#111827" }}>処理済み</h3>
+          <h3 className="font-extrabold text-sm mb-2" style={{ color: "var(--fg)" }}>処理済み</h3>
           <div className="flex flex-col gap-2">
             {history.map((p) => (
               <div key={p.id} className="card p-3">
-                <p className="text-sm" style={{ color: "#111827" }}>
-                  {p.title} <span className="font-bold" style={{ color: p.status === "approved" ? "#0f766e" : "#dc2626" }}>{PROPOSAL_STATUS_LABEL[p.status]}</span>
+                <p className="text-sm flex items-center gap-2" style={{ color: "var(--fg)" }}>
+                  <span>{p.title}</span>
+                  <span
+                    className="badge"
+                    style={p.status === "approved"
+                      ? { background: "var(--primary-50)", color: "var(--primary-700)" }
+                      : { background: "#fef2f2", color: "var(--destructive)" }}
+                  >
+                    {PROPOSAL_STATUS_LABEL[p.status]}
+                  </span>
                 </p>
                 {p.status === "rejected" && p.review_reason && (
-                  <p className="text-xs mt-1" style={{ color: "#6b7280" }}>却下理由: {p.review_reason}</p>
+                  <p className="text-xs mt-1" style={{ color: "var(--muted)" }}>却下理由: {p.review_reason}</p>
                 )}
               </div>
             ))}
@@ -211,14 +235,14 @@ function MissionsManager() {
   const generalCategories = categories.filter((c) => c.group_key !== "dept");
   const deptCategories = categories.filter((c) => c.group_key === "dept");
 
-  if (loading) return <p className="text-sm" style={{ color: "#6b7280" }}>読み込み中…</p>;
+  if (loading) return <Loading />;
 
   return (
     <div className="flex flex-col gap-6">
-      {msg && <p className="text-sm" style={{ color: "#dc2626" }}>{msg}</p>}
+      {msg && <p className="text-sm" style={{ color: "var(--destructive)" }}>{msg}</p>}
 
       <div className="flex flex-col gap-2">
-        <h3 className="font-bold text-sm" style={{ color: "#111827" }}>みんなでやろう</h3>
+        <h3 className="font-extrabold text-sm" style={{ color: "var(--fg)" }}>みんなでやろう</h3>
         <CreateMissionForm categories={generalCategories} onCreated={load} onError={setMsg} />
         {generalCategories.map((c) => (
           <CategoryFolder
@@ -230,13 +254,13 @@ function MissionsManager() {
           />
         ))}
         {generalCategories.length === 0 && (
-          <p className="text-sm" style={{ color: "#6b7280" }}>カテゴリがありません。</p>
+          <p className="text-sm" style={{ color: "var(--muted)" }}>カテゴリがありません。</p>
         )}
       </div>
 
       {deptCategories.length > 0 && (
         <div className="flex flex-col gap-2">
-          <h3 className="font-bold text-sm" style={{ color: "#111827" }}>部門別ミッション</h3>
+          <h3 className="font-extrabold text-sm" style={{ color: "var(--fg)" }}>部門別ミッション</h3>
           {deptCategories.map((c) => (
             <CategoryFolder
               key={c.slug}
@@ -264,22 +288,22 @@ function CategoryFolder({ category, missions, onSaved, onError }: {
       <button
         onClick={() => setOpen((o) => !o)}
         className="w-full flex items-center justify-between px-4 py-3 text-left"
-        style={{ background: "#f9fafb" }}
+        style={{ background: open ? "var(--primary-50)" : "var(--bg-deep)" }}
       >
-        <span className="font-bold text-sm flex items-center gap-2" style={{ color: "#111827" }}>
-          <span style={{ color: "#6b7280" }}>{open ? "📂" : "📁"}</span>
+        <span className="font-bold text-sm flex items-center gap-2" style={{ color: "var(--fg)" }}>
+          <span>{open ? "📂" : "📁"}</span>
           {category.title}
-          <span className="font-normal" style={{ color: "#9ca3af" }}>（{missions.length}）</span>
+          <span className="badge-soft">{missions.length}</span>
         </span>
-        <span style={{ color: "#9ca3af" }}>{open ? "▾" : "▸"}</span>
+        <span style={{ color: "var(--primary-deep)" }}>{open ? "▾" : "▸"}</span>
       </button>
       {open && (
-        <div className="flex flex-col gap-2 p-3" style={{ borderTop: "1px solid #f3f4f6" }}>
+        <div className="flex flex-col gap-2 p-3" style={{ borderTop: "1px solid var(--border-soft)" }}>
           {missions.map((m) => (
             <MissionRowEditor key={m.id} mission={m} onSaved={onSaved} onError={onError} />
           ))}
           {missions.length === 0 && (
-            <p className="text-sm" style={{ color: "#6b7280" }}>このカテゴリにミッションはありません。</p>
+            <p className="text-sm" style={{ color: "var(--muted)" }}>このカテゴリにミッションはありません。</p>
           )}
         </div>
       )}
@@ -336,7 +360,7 @@ function CreateMissionForm({ categories, onCreated, onError }: {
 
   if (!open) {
     return (
-      <button onClick={() => setOpen(true)} className="self-start px-4 py-2 rounded-lg font-bold text-white text-sm" style={{ background: "#0f766e" }}>
+      <button onClick={() => setOpen(true)} className={`self-start ${primaryBtn}`}>
         ＋ 新しいミッション
       </button>
     );
@@ -351,20 +375,20 @@ function CreateMissionForm({ categories, onCreated, onError }: {
         <NumberInput label="難易度(1-5)" value={form.difficulty} onChange={(v) => setForm({ ...form, difficulty: v })} />
         <NumberInput label="ポイント" value={form.points} onChange={(v) => setForm({ ...form, points: v })} />
       </div>
-      <label className="text-sm font-bold" style={{ color: "#374151" }}>カテゴリ
-        <select className="block w-full mt-1 border rounded px-2 py-1.5 text-sm" value={form.category_slug} onChange={(e) => setForm({ ...form, category_slug: e.target.value })}>
+      <label className="text-sm font-bold" style={{ color: "var(--muted-fg)" }}>カテゴリ
+        <select className={fieldClass} style={fieldStyle} value={form.category_slug} onChange={(e) => setForm({ ...form, category_slug: e.target.value })}>
           {categories.map((c) => <option key={c.slug} value={c.slug}>{c.title}</option>)}
         </select>
       </label>
-      <label className="text-sm font-bold" style={{ color: "#374151" }}>提出タイプ
-        <select className="block w-full mt-1 border rounded px-2 py-1.5 text-sm" value={form.submission_type} onChange={(e) => setForm({ ...form, submission_type: e.target.value as SubmissionType })}>
+      <label className="text-sm font-bold" style={{ color: "var(--muted-fg)" }}>提出タイプ
+        <select className={fieldClass} style={fieldStyle} value={form.submission_type} onChange={(e) => setForm({ ...form, submission_type: e.target.value as SubmissionType })}>
           {(["NONE", "TEXT", "LINK"] as SubmissionType[]).map((s) => <option key={s} value={s}>{SUBMISSION_LABEL[s]}</option>)}
         </select>
       </label>
       <Input label="達成上限回数（空=無制限）" value={form.max_achievement_count} onChange={(v) => setForm({ ...form, max_achievement_count: v })} />
       <div className="flex gap-2 mt-1">
-        <button disabled={saving} onClick={submit} className="px-4 py-2 rounded-lg font-bold text-white text-sm" style={{ background: "#0f766e" }}>{saving ? "保存中…" : "作成"}</button>
-        <button onClick={() => setOpen(false)} className="px-4 py-2 rounded-lg font-bold text-sm" style={{ background: "#f3f4f6", color: "#374151" }}>キャンセル</button>
+        <button disabled={saving} onClick={submit} className={primaryBtn}>{saving ? "保存中…" : "作成"}</button>
+        <button onClick={() => setOpen(false)} className={ghostBtn} style={ghostBtnStyle}>キャンセル</button>
       </div>
     </div>
   );
@@ -407,14 +431,18 @@ function MissionRowEditor({ mission, onSaved, onError }: {
 
   if (!edit) {
     return (
-      <div className="card p-3 flex items-center justify-between" style={mission.is_hidden ? { opacity: 0.5 } : undefined}>
+      <div className="rounded-lg p-3 flex items-center justify-between" style={{ background: "var(--bg-deep)", opacity: mission.is_hidden ? 0.55 : 1 }}>
         <div>
-          <p className="font-bold text-sm" style={{ color: "#111827" }}>{mission.title} {mission.is_hidden && "（非表示）"}</p>
-          <p className="text-xs" style={{ color: "#6b7280" }}>難易度{mission.difficulty}・{mission.points}P・{SUBMISSION_LABEL[mission.submission_type]}</p>
+          <p className="font-bold text-sm" style={{ color: "var(--fg)" }}>{mission.title} {mission.is_hidden && "（非表示）"}</p>
+          <p className="text-xs mt-0.5 flex flex-wrap gap-1.5">
+            <span className="badge-soft">難易度{mission.difficulty}</span>
+            <span className="badge">{mission.points}P</span>
+            <span className="badge-soft">{SUBMISSION_LABEL[mission.submission_type]}</span>
+          </p>
         </div>
-        <div className="flex gap-2">
-          <button onClick={() => setEdit(true)} className="text-sm font-bold" style={{ color: "#0f766e" }}>編集</button>
-          <button disabled={saving} onClick={() => patch({ is_hidden: !mission.is_hidden })} className="text-sm font-bold" style={{ color: "#6b7280" }}>
+        <div className="flex gap-3 shrink-0">
+          <button onClick={() => setEdit(true)} className="text-sm font-bold" style={{ color: "var(--primary-deep)" }}>編集</button>
+          <button disabled={saving} onClick={() => patch({ is_hidden: !mission.is_hidden })} className="text-sm font-bold" style={{ color: "var(--muted)" }}>
             {mission.is_hidden ? "表示" : "非表示"}
           </button>
         </div>
@@ -439,8 +467,8 @@ function MissionRowEditor({ mission, onSaved, onError }: {
           points: Number(form.points),
           submission_type: form.submission_type,
           max_achievement_count: form.max_achievement_count ? Number(form.max_achievement_count) : null,
-        })} className="px-4 py-2 rounded-lg font-bold text-white text-sm" style={{ background: "#0f766e" }}>{saving ? "保存中…" : "保存"}</button>
-        <button onClick={() => setEdit(false)} className="px-4 py-2 rounded-lg font-bold text-sm" style={{ background: "#f3f4f6", color: "#374151" }}>キャンセル</button>
+        })} className={primaryBtn}>{saving ? "保存中…" : "保存"}</button>
+        <button onClick={() => setEdit(false)} className={ghostBtn} style={ghostBtnStyle}>キャンセル</button>
       </div>
     </div>
   );
@@ -521,16 +549,17 @@ function AdminsManager({ selfDiscordId }: { selfDiscordId?: string | null }) {
 
   const deptName = (slug: string | null) => departments.find((d) => d.slug === slug)?.name ?? slug ?? "";
 
-  if (loading) return <p className="text-sm" style={{ color: "#6b7280" }}>読み込み中…</p>;
+  if (loading) return <Loading />;
 
   return (
     <div className="flex flex-col gap-6">
-      {msg && <p className="text-sm" style={{ color: "#dc2626" }}>{msg}</p>}
+      {msg && <p className="text-sm" style={{ color: "var(--destructive)" }}>{msg}</p>}
       <div className="card p-4 flex flex-col gap-2">
-        <p className="font-bold text-sm" style={{ color: "#111827" }}>メンバーに権限を付与 / 更新</p>
-        <label className="text-sm font-bold" style={{ color: "#374151" }}>メンバー
+        <p className="font-extrabold text-sm" style={{ color: "var(--fg)" }}>メンバーに権限を付与 / 更新</p>
+        <label className="text-sm font-bold" style={{ color: "var(--muted-fg)" }}>メンバー
           <select
-            className="block w-full mt-1 border rounded px-2 py-1.5 text-sm font-normal"
+            className={fieldClass}
+            style={fieldStyle}
             value={form.discord_user_id}
             onChange={(e) => {
               const m = members.find((x) => x.discord_user_id === e.target.value);
@@ -544,29 +573,34 @@ function AdminsManager({ selfDiscordId }: { selfDiscordId?: string | null }) {
           </select>
         </label>
         <Input label="役職名（例: 部門長）" value={form.title} onChange={(v) => setForm({ ...form, title: v })} />
-        <label className="text-sm font-bold" style={{ color: "#374151" }}>権限
-          <select className="block w-full mt-1 border rounded px-2 py-1.5 text-sm" value={form.scope} onChange={(e) => setForm({ ...form, scope: e.target.value as AdminScope })}>
+        <label className="text-sm font-bold" style={{ color: "var(--muted-fg)" }}>権限
+          <select className={fieldClass} style={fieldStyle} value={form.scope} onChange={(e) => setForm({ ...form, scope: e.target.value as AdminScope })}>
             {SCOPE_OPTIONS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
           </select>
         </label>
         {form.scope === "dept" && (
-          <label className="text-sm font-bold" style={{ color: "#374151" }}>部門
-            <select className="block w-full mt-1 border rounded px-2 py-1.5 text-sm" value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })}>
+          <label className="text-sm font-bold" style={{ color: "var(--muted-fg)" }}>部門
+            <select className={fieldClass} style={fieldStyle} value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })}>
               {departments.map((d) => <option key={d.slug} value={d.slug}>{d.name}</option>)}
             </select>
           </label>
         )}
-        <button disabled={saving || !form.discord_user_id} onClick={submit} className="self-start px-4 py-2 rounded-lg font-bold text-white text-sm" style={{ background: form.discord_user_id ? "#0f766e" : "#9ca3af" }}>{saving ? "保存中…" : "付与 / 更新"}</button>
+        <button disabled={saving || !form.discord_user_id} onClick={submit} className={`self-start ${primaryBtn}`}>{saving ? "保存中…" : "付与 / 更新"}</button>
       </div>
       <div className="flex flex-col gap-2">
         {admins.map((a) => (
           <div key={a.id} className="card p-3 flex items-center justify-between">
-            <div>
-              <p className="font-bold text-sm" style={{ color: "#111827" }}>{a.username ?? a.discord_user_id} <span className="font-normal" style={{ color: "#6b7280" }}>{a.title}</span></p>
-              <p className="text-xs" style={{ color: "#6b7280" }}>{SCOPE_OPTIONS.find((s) => s.value === a.scope)?.label}{a.department && `・${deptName(a.department)}`}</p>
+            <div className="flex items-center gap-3 min-w-0">
+              <span className="avatar w-9 h-9 text-sm">{(a.username ?? a.discord_user_id).slice(0, 1).toUpperCase()}</span>
+              <div className="min-w-0">
+                <p className="font-bold text-sm truncate" style={{ color: "var(--fg)" }}>{a.username ?? a.discord_user_id} <span className="font-normal" style={{ color: "var(--muted)" }}>{a.title}</span></p>
+                <p className="text-xs mt-0.5">
+                  <span className="badge-soft">{SCOPE_OPTIONS.find((s) => s.value === a.scope)?.label}{a.department && `・${deptName(a.department)}`}</span>
+                </p>
+              </div>
             </div>
             {a.discord_user_id !== selfDiscordId && (
-              <button onClick={() => revoke(a.discord_user_id)} className="text-sm font-bold" style={{ color: "#dc2626" }}>削除</button>
+              <button onClick={() => revoke(a.discord_user_id)} className="text-sm font-bold shrink-0" style={{ color: "var(--destructive)" }}>削除</button>
             )}
           </div>
         ))}
@@ -577,16 +611,16 @@ function AdminsManager({ selfDiscordId }: { selfDiscordId?: string | null }) {
 
 function Input({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
   return (
-    <label className="text-sm font-bold" style={{ color: "#374151" }}>{label}
-      <input className="block w-full mt-1 border rounded px-2 py-1.5 text-sm font-normal" value={value} onChange={(e) => onChange(e.target.value)} />
+    <label className="text-sm font-bold" style={{ color: "var(--muted-fg)" }}>{label}
+      <input className={fieldClass} style={fieldStyle} value={value} onChange={(e) => onChange(e.target.value)} />
     </label>
   );
 }
 
 function NumberInput({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) {
   return (
-    <label className="text-sm font-bold flex-1" style={{ color: "#374151" }}>{label}
-      <input type="number" className="block w-full mt-1 border rounded px-2 py-1.5 text-sm font-normal" value={value} onChange={(e) => onChange(Number(e.target.value))} />
+    <label className="text-sm font-bold flex-1" style={{ color: "var(--muted-fg)" }}>{label}
+      <input type="number" className={fieldClass} style={fieldStyle} value={value} onChange={(e) => onChange(Number(e.target.value))} />
     </label>
   );
 }

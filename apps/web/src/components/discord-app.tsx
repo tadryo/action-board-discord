@@ -42,18 +42,18 @@ function AppContent() {
 
   if (showAdmin && adminScope) {
     return (
-      <div style={{ minHeight: "100dvh", display: "flex", flexDirection: "column", background: "#f8fafc" }}>
+      <div style={{ minHeight: "100dvh", display: "flex", flexDirection: "column", background: "var(--bg)" }}>
         <div
-          className="flex items-center gap-3 px-4 py-2.5 bg-white sticky top-0 z-10"
-          style={{
-            borderBottom: "1px solid var(--border-soft)",
-            paddingTop: "calc(env(safe-area-inset-top) + 3.75rem)",
-          }}
+          className="bg-gradient-hero px-5 pb-5 sticky top-0 z-10"
+          style={{ paddingTop: "calc(env(safe-area-inset-top) + 3.75rem)" }}
         >
-          <button onClick={() => setShowAdmin(false)} className="text-sm font-bold" style={{ color: "#0f766e" }}>← 戻る</button>
-          <span className="text-sm font-extrabold" style={{ color: "var(--fg)" }}>承認・管理</span>
+          <div className="max-w-3xl mx-auto">
+            <button onClick={() => setShowAdmin(false)} className="text-sm font-bold mb-2 inline-flex items-center gap-1" style={{ color: "var(--primary-700)" }}>← 戻る</button>
+            <h1 className="text-2xl font-black" style={{ color: "#0a0a0a" }}>🛠 承認・管理</h1>
+            <p className="text-sm mt-1 font-semibold" style={{ color: "var(--primary-deep)" }}>提案の承認やミッション・権限を管理します。</p>
+          </div>
         </div>
-        <main style={{ flex: 1, overflowY: "auto", padding: "1rem", paddingBottom: "env(safe-area-inset-bottom)" }}>
+        <main style={{ flex: 1, overflowY: "auto", padding: "1.25rem 1rem", paddingBottom: "env(safe-area-inset-bottom)" }}>
           <AdminDashboard scope={adminScope} accessToken={accessToken} selfDiscordId={selfDiscordId} />
         </main>
       </div>
