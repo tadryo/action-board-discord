@@ -12,14 +12,16 @@ import MissionAchievementStatus from "@/features/missions/components/mission-ach
 import type { MissionWithAchievements } from "@/types/database";
 
 const CATEGORY_EMOJI: Record<string, string> = {
-  "learn-student-team": "📚",
-  "join-discord": "💬",
-  "learn-with-quiz": "❓",
-  "share-and-spread": "📣",
-  "invite-friends": "🤝",
-  "join-events": "📅",
-  "learn-policies": "📖",
-  vote: "🗳️",
+  start:        "👋",
+  engage:       "💬",
+  learn:        "📚",
+  spread:       "📣",
+  invite:       "🤝",
+  act:          "🗳️",
+  "dept-kikaku":  "📅",
+  "dept-koho":    "📢",
+  "dept-seisaku": "📖",
+  "dept-design":  "🎨",
 };
 
 interface Props {
