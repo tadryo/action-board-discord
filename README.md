@@ -151,6 +151,17 @@ Discord のボイスチャンネルまたは App Launcher から Activity を起
 > `PORT` は Railway が自動注入するため設定不要です。
 > 本番は Railway サービスの **Variables** に設定し、ローカルは `apps/web/.env.local` に記述します。
 
+#### 任意（ブランディング）
+
+未設定でも動きます。コミュニティ名やキャッチコピーを変えたいときに設定します。
+
+| 変数名 | 用途 | 既定値 |
+|---|---|---|
+| `NEXT_PUBLIC_APP_NAME` | アプリ名（タブ/メタ情報・トップ見出し） | `アクションボード` |
+| `NEXT_PUBLIC_APP_TAGLINE` | トップのキャッチコピー | `アクションでポイントを貯めよう。` |
+
+> `NEXT_PUBLIC_*` はビルド時に埋め込まれるため、変更後は再デプロイ（Railway は再ビルド）が必要です。
+
 ### 運用スクリプト実行時（最小限）
 
 スクリプトはアプリ本体の全変数を必要としません。
@@ -222,13 +233,15 @@ UPDATE users SET total_points = 0;
 
 コミュニティに合わせて表示名・キャッチコピーを変更できます。
 
-| 変更したいもの | 場所 |
+| 変更したいもの | 方法 |
 |---|---|
-| アプリ名（タブ/メタ情報） | `apps/web/src/app/layout.tsx` の `metadata` |
-| トップの見出し・キャッチコピー | `apps/web/src/components/missions-page.tsx`（ヒーロー部分） |
+| アプリ名（タブ/メタ情報・トップ見出し） | 環境変数 `NEXT_PUBLIC_APP_NAME` |
+| トップのキャッチコピー | 環境変数 `NEXT_PUBLIC_APP_TAGLINE` |
 | カラーテーマ | `apps/web/src/app/globals.css`（CSS 変数 `--primary` ほか） |
 | カテゴリの絵文字 | `apps/web/src/components/mission-card.tsx`（`CATEGORY_EMOJI`） |
 | ミッション内容 | `mission_data/*.yaml`（[ミッション管理](#ミッション管理)） |
+
+アプリ名・キャッチコピーは**コードを変更せず環境変数だけで**差し替えられます（[環境変数](#環境変数) 参照）。
 
 ## ローカル開発
 

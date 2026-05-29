@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useDiscordActions } from "@/components/discord-provider";
+import { APP_NAME, APP_TAGLINE } from "@/lib/app-config";
 import MissionCard from "@/components/mission-card";
 import type { CategoryRow, MissionRow, MissionWithAchievements, UserRow } from "@/types/database";
 
@@ -96,9 +97,9 @@ export default function MissionsPage({ user, accessToken }: Props) {
     <div className="pb-8">
       <div className="bg-gradient-hero px-5 pt-6 pb-7">
         <div className="max-w-3xl mx-auto">
-          <h1 className="text-2xl font-black" style={{ color: "#0a0a0a" }}>🎯 アクションボード</h1>
+          <h1 className="text-2xl font-black" style={{ color: "#0a0a0a" }}>🎯 {APP_NAME}</h1>
           <p className="text-sm mt-1 font-semibold" style={{ color: "#0f766e" }}>
-            政治をもっと身近に。アクションでポイントを貯めよう。
+            {APP_TAGLINE}
           </p>
           <div className="mt-4 card p-4">
             <div className="flex items-center justify-between text-sm font-bold mb-1.5">

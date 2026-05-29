@@ -1,9 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { APP_NAME, APP_TAGLINE } from "@/lib/app-config";
 
 export const metadata: Metadata = {
-  title: "チームみらい アクションボード",
-  description: "チームみらい学生チーム向けアクションボード",
+  title: APP_NAME,
+  description: APP_TAGLINE,
 };
 
 // モバイル対応: 端末幅に合わせ、ノッチ等のセーフエリアまで描画する
