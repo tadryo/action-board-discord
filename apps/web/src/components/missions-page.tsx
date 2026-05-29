@@ -30,7 +30,7 @@ export default function MissionsPage({ user, accessToken }: Props) {
       if (!achievementsRes.ok) throw new Error(`achievements ${achievementsRes.status}`);
 
       const { missions: missionRows, categories: categoryRows } = await missionsRes.json() as {
-        missions: MissionRow[];
+        missions: (MissionRow & { total_achievements: number })[];
         categories: CategoryRow[];
       };
       const achievements = await achievementsRes.json() as { mission_id: string }[];
@@ -67,6 +67,7 @@ export default function MissionsPage({ user, accessToken }: Props) {
         return {
           ...m,
           achievement_count: count,
+          total_achievements: (m.total_achievements ?? 0) + 1,
           is_completed: m.max_achievement_count !== null && count >= m.max_achievement_count,
         };
       }),
