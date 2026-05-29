@@ -77,3 +77,7 @@ CREATE POLICY "admins_service_all" ON admins FOR ALL USING (auth.role() = 'servi
 -- mission_proposals の読み書きはService Roleのみ。
 -- メンバーへの公開（review_reasonを除く）はAPI経由で列を限定して返す。
 CREATE POLICY "proposals_service_all" ON mission_proposals FOR ALL USING (auth.role() = 'service_role');
+
+-- 2026-05-30 以降、新規テーブルへの暗黙GRANTが無効になるため明示的に付与する。
+-- 既存テーブルと同様、実アクセス制御は上記RLSポリシーが担保する。
+GRANT ALL ON departments, admins, mission_proposals TO anon, authenticated, service_role;
