@@ -86,13 +86,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: "ミッション作成に失敗しました" }, { status: 500 });
   }
 
-  const { error: updateError } = await supabase
+  // 承認後はミッションが正本になるため、提案レコードは削除する。
+  const { error: deleteError } = await supabase
     .from("mission_proposals")
-    .update({ status: "approved", approved_mission_slug: slug, ...reviewed })
+    .delete()
     .eq("id", id);
 
-  if (updateError) {
-    return NextResponse.json({ error: "提案の更新に失敗しました" }, { status: 500 });
+  if (deleteError) {
+    return NextResponse.json({ error: "提案の削除に失敗しました" }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true, status: "approved", mission_slug: slug });

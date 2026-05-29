@@ -44,16 +44,16 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   if ("error" in guard) return guard.error;
 
   const { id } = await params;
-  const { error } = await getSupabaseAdmin().from("missions").delete().eq("id", id);
+  const supabase = getSupabaseAdmin();
 
+  // 達成記録が外部キーで紐づくため、先に削除してからミッションを消す。
+  const { error: achError } = await supabase.from("achievements").delete().eq("mission_id", id);
+  if (achError) {
+    return NextResponse.json({ error: "削除に失敗しました" }, { status: 400 });
+  }
+
+  const { error } = await supabase.from("missions").delete().eq("id", id);
   if (error) {
-    // 達成記録が紐づくミッションは外部キー制約で削除できない（非表示を案内する）
-    if (error.code === "23503") {
-      return NextResponse.json(
-        { error: "達成記録があるため削除できません。非表示にしてください。" },
-        { status: 409 },
-      );
-    }
     return NextResponse.json({ error: "削除に失敗しました" }, { status: 400 });
   }
 
