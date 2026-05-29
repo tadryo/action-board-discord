@@ -1,5 +1,8 @@
 "use client";
 
+import { useMemo } from "react";
+import { isMobilePlatform } from "@/lib/platform";
+
 type Tab = "missions" | "leaderboard" | "profile";
 
 interface Props {
@@ -15,13 +18,17 @@ const tabs: { id: Tab; label: string; icon: string }[] = [
 ];
 
 export default function NavBar({ tab, onTabChange, username }: Props) {
+  const mobile = useMemo(() => isMobilePlatform(), []);
   return (
     <nav
       className="flex items-center justify-between gap-2 px-4 py-2.5 bg-white sticky top-0 z-10"
       style={{
         borderBottom: "1px solid var(--border-soft)",
-        // Discord モバイルのバー / ノッチでナビが隠れないようセーフエリア分を上に確保
-        paddingTop: "calc(0.625rem + env(safe-area-inset-top))",
+        // モバイル(Discord)では上部バー+ノッチを避けるため固定オフセットを上乗せ。
+        // env(safe-area-inset-top) が 0 を返す環境でもナビが隠れないようにする。
+        paddingTop: mobile
+          ? "calc(env(safe-area-inset-top) + 3rem)"
+          : "calc(0.625rem + env(safe-area-inset-top))",
       }}
     >
       <span className="text-sm font-extrabold truncate max-w-[120px] flex items-center gap-1.5" style={{ color: "var(--fg)" }}>
