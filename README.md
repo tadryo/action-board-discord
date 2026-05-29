@@ -136,43 +136,45 @@ Discord のボイスチャンネルまたは App Launcher から Activity を起
 
 ## 環境変数
 
-### アプリ本体（Railway フロントエンドサービス）
+### 原則：どこに設定する？
 
-アプリを動かすにはこの 5 つを設定します。
+環境は2つあり、**同じ変数名が両方に出てくるのは重複ではなく、別環境用のコピー**です。
 
-| 変数名 | 用途 |
-|---|---|
-| `NEXT_PUBLIC_DISCORD_CLIENT_ID` | Discord アプリの Client ID（ブラウザに公開） |
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase プロジェクト URL（ブラウザに公開） |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon キー（ブラウザに公開） |
-| `DISCORD_CLIENT_SECRET` | Discord OAuth コード交換用（サーバー専用・秘匿） |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role キー（サーバー専用・秘匿） |
+- **本番 = Railway の Variables** … デプロイされたアプリが読む設定。
+- **ローカル = `apps/web/.env.local`** … 自分のPCで `npm run dev:web` やスクリプトを動かすときだけ使う。本番には一切影響しない（`.gitignore` 済み）。
 
-> `PORT` は Railway が自動注入するため設定不要です。
-> 本番は Railway サービスの **Variables** に設定し、ローカルは `apps/web/.env.local` に記述します。
+> **ローカルで何も動かさないなら `.env.local` は不要**。Railway の Variables だけでアプリは動きます。
 
-#### 任意（ブランディング）
+### どこに何を置くか（一覧）
 
-未設定でも動きます。コミュニティ名やキャッチコピーを変えたいときに設定します。
+| 変数名 | Railway（本番アプリ） | `.env.local`（ローカル） | 用途 |
+|---|---|---|---|
+| `NEXT_PUBLIC_DISCORD_CLIENT_ID` | **必須** | ローカルで動かすなら | Discord Client ID |
+| `NEXT_PUBLIC_SUPABASE_URL` | **必須** | 〃 | Supabase URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | **必須** | 〃 | Supabase anon キー |
+| `DISCORD_CLIENT_SECRET` | **必須** | 〃 | OAuth 交換（秘匿） |
+| `SUPABASE_SERVICE_ROLE_KEY` | **必須** | 〃 / スクリプト用 | service role（秘匿） |
+| `NEXT_PUBLIC_APP_NAME` | 任意 | 任意 | アプリ名（ブランディング） |
+| `NEXT_PUBLIC_APP_TAGLINE` | 任意 | 任意 | キャッチコピー（ブランディング） |
+| `DISCORD_BOT_TOKEN` | **不要** | `register-commands` 用 | Bot トークン（スクリプト専用） |
 
-| 変数名 | 用途 | 既定値 |
-|---|---|---|
-| `NEXT_PUBLIC_APP_NAME` | アプリ名（タブ/メタ情報・トップ見出し） | `アクションボード` |
-| `NEXT_PUBLIC_APP_TAGLINE` | トップのキャッチコピー | `アクションでポイントを貯めよう。` |
+ポイント:
+- **`DISCORD_BOT_TOKEN` は本番アプリでは使いません**。`register-commands` スクリプト専用なので **Railway に置く必要はなく**、ローカル（または `railway run`）でだけ用意すれば十分です。
+- `PORT` は Railway が自動注入するため設定不要です。
+- `NEXT_PUBLIC_APP_NAME` / `NEXT_PUBLIC_APP_TAGLINE` は未設定でも汎用の既定値（`アクションボード` / `アクションでポイントを貯めよう。`）で動きます。
+- `NEXT_PUBLIC_*` はビルド時に埋め込まれるため、変更後は再デプロイ（Railway は再ビルド）が必要です。
 
-> `NEXT_PUBLIC_*` はビルド時に埋め込まれるため、変更後は再デプロイ（Railway は再ビルド）が必要です。
+### スクリプトに必要な最小限
 
-### 運用スクリプト実行時（最小限）
-
-スクリプトはアプリ本体の全変数を必要としません。
+各スクリプトはアプリ本体の全変数を必要とせず、これだけで動きます。
 
 | スクリプト | 必要な変数 |
 |---|---|
 | `sync-missions` | `NEXT_PUBLIC_SUPABASE_URL`（または `SUPABASE_URL`）, `SUPABASE_SERVICE_ROLE_KEY` |
 | `register-commands` | `NEXT_PUBLIC_DISCORD_CLIENT_ID`（または `DISCORD_CLIENT_ID`）, `DISCORD_BOT_TOKEN`（任意で `DISCORD_GUILD_ID`） |
 
-> [Railway CLI](https://docs.railway.app/develop/cli) があれば `railway run npm run sync-missions` でサービスの env を注入でき、ローカルに書かずに実行できます。
-> `SUPABASE_SERVICE_ROLE_KEY` は RLS をバイパスする強力な鍵です。共有・コミットしないよう注意してください。
+> [Railway CLI](https://docs.railway.app/develop/cli) があれば `railway run npm run sync-missions` で Railway の env を注入でき、`.env.local` に書かずに実行できます。
+> `SUPABASE_SERVICE_ROLE_KEY` / `DISCORD_BOT_TOKEN` は強力な秘匿情報です。共有・コミットしないよう注意してください。
 
 ## ミッション管理
 
