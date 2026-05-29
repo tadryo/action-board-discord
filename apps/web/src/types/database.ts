@@ -12,6 +12,8 @@ export interface Database {
           guild_id: string;
           total_points: number;
           created_at: string;
+          twitter_url: string | null;
+          github_url: string | null;
         };
       };
       missions: {
@@ -28,6 +30,7 @@ export interface Database {
           is_hidden: boolean;
           icon_url: string | null;
           is_featured: boolean;
+          archived_at: string | null;
         };
       };
       achievements: {
@@ -38,6 +41,39 @@ export interface Database {
           submission_text: string | null;
           achieved_at: string;
           points_earned: number;
+          season_id: string | null;
+        };
+      };
+      seasons: {
+        Row: {
+          id: string;
+          slug: string;
+          name: string;
+          starts_at: string;
+          ends_at: string | null;
+          is_active: boolean;
+          sort_no: number;
+          created_at: string;
+        };
+      };
+      badges: {
+        Row: {
+          id: string;
+          slug: string;
+          name: string;
+          description: string | null;
+          icon: string;
+          condition_type: "count" | "points";
+          condition_value: number;
+          sort_no: number;
+        };
+      };
+      user_badges: {
+        Row: {
+          id: string;
+          user_id: string;
+          badge_id: string;
+          awarded_at: string;
         };
       };
       categories: {
@@ -101,6 +137,33 @@ export type CategoryRow = Database["public"]["Tables"]["categories"]["Row"];
 export type DepartmentRow = Database["public"]["Tables"]["departments"]["Row"];
 export type AdminRow = Database["public"]["Tables"]["admins"]["Row"];
 export type MissionProposalRow = Database["public"]["Tables"]["mission_proposals"]["Row"];
+export type SeasonRow = Database["public"]["Tables"]["seasons"]["Row"];
+export type BadgeRow = Database["public"]["Tables"]["badges"]["Row"];
+export type UserBadgeRow = Database["public"]["Tables"]["user_badges"]["Row"];
+
+export interface BadgeWithEarned extends BadgeRow {
+  earned: boolean;
+  awarded_at: string | null;
+}
+
+export interface TimelineEntry {
+  id: string;
+  achieved_at: string;
+  points_earned: number;
+  discord_user_id: string;
+  username: string;
+  avatar: string | null;
+  mission_title: string | null;
+}
+
+export interface LevelInfo {
+  level: number;
+  currentLevelFloor: number;
+  nextLevelAt: number;
+  pointsIntoLevel: number;
+  pointsForLevel: number;
+  progress: number;
+}
 
 export interface MissionWithAchievements extends MissionRow {
   achievement_count: number;

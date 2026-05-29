@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { isMobilePlatform } from "@/lib/platform";
 
-type Tab = "missions" | "leaderboard" | "profile";
+type Tab = "missions" | "timeline" | "leaderboard" | "profile";
 
 interface Props {
   tab: Tab;
@@ -14,6 +14,7 @@ interface Props {
 
 const tabs: { id: Tab; label: string; icon: string }[] = [
   { id: "missions",    label: "ミッション",   icon: "🎯" },
+  { id: "timeline",    label: "タイムライン", icon: "⏱" },
   { id: "leaderboard", label: "アクションリーダー", icon: "🏆" },
   { id: "profile",     label: "プロフィール", icon: "👤" },
 ];

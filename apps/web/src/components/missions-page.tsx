@@ -5,6 +5,7 @@ import { useDiscordActions } from "@/components/discord-provider";
 import { APP_NAME_DEFAULT, APP_TAGLINE_DEFAULT } from "@/lib/app-config";
 import MissionCard from "@/components/mission-card";
 import ProposeTaskModal from "@/components/propose-task-modal";
+import LeaderboardTop3 from "@/components/leaderboard-top3";
 import type { CategoryRow, MissionRow, MissionWithAchievements, UserRow } from "@/types/database";
 
 function CategorySection({ category, items, accessToken, onAchieved, onPropose }: {
@@ -43,9 +44,11 @@ function CategorySection({ category, items, accessToken, onAchieved, onPropose }
 interface Props {
   user: UserRow;
   accessToken: string;
+  guildId: string;
+  onSeeLeaderboard?: () => void;
 }
 
-export default function MissionsPage({ user, accessToken }: Props) {
+export default function MissionsPage({ user, accessToken, guildId, onSeeLeaderboard }: Props) {
   const [missions, setMissions] = useState<MissionWithAchievements[]>([]);
   const [categories, setCategories] = useState<CategoryRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -167,6 +170,7 @@ export default function MissionsPage({ user, accessToken }: Props) {
               <div className="progress-fill" style={{ width: `${progress}%` }} />
             </div>
           </div>
+          <LeaderboardTop3 guildId={guildId} currentUser={user} onSeeAll={onSeeLeaderboard} />
         </div>
       </div>
 

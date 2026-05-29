@@ -80,6 +80,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  // 表示名はログイン時に users.username へ同期済みのサーバーニックネームを優先する。
+  const { data: registered } = await supabase
+    .from("users")
+    .select("username")
+    .eq("discord_user_id", user.id)
+    .maybeSingle<{ username: string }>();
+  const proposerName = registered?.username || user.global_name || user.username;
+
   const { data, error } = await supabase
     .from("mission_proposals")
     .insert({
@@ -90,7 +98,7 @@ export async function POST(req: NextRequest) {
       submission_type: parsed.data.submission_type,
       department: parsed.data.department,
       proposed_by_discord_id: user.id,
-      proposed_by_username: user.global_name || user.username,
+      proposed_by_username: proposerName,
       status: "pending",
     })
     .select("id, title, status")

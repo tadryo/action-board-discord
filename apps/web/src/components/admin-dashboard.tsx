@@ -424,7 +424,7 @@ function MissionRowEditor({ mission, onSaved, onError }: {
   });
   const [saving, setSaving] = useState(false);
 
-  const remove = async () => {
+  const archive = async () => {
     setSaving(true);
     onError(null);
     const res = await apiFetch(`/api/admin/missions/${mission.id}`, { method: "DELETE" });
@@ -433,7 +433,7 @@ function MissionRowEditor({ mission, onSaved, onError }: {
       onSaved();
     } else {
       const data = (await res.json().catch(() => ({}))) as { error?: string };
-      onError(data.error ?? "削除に失敗しました");
+      onError(data.error ?? "アーカイブに失敗しました");
       setConfirmDelete(false);
     }
   };
@@ -456,21 +456,30 @@ function MissionRowEditor({ mission, onSaved, onError }: {
     }
   };
 
+  const isArchived = mission.archived_at !== null;
+
   if (!edit) {
     return (
-      <div className="rounded-lg p-3 flex items-center justify-between" style={{ background: "var(--bg-deep)", opacity: mission.is_hidden ? 0.55 : 1 }}>
+      <div className="rounded-lg p-3 flex items-center justify-between" style={{ background: "var(--bg-deep)", opacity: isArchived ? 0.5 : mission.is_hidden ? 0.55 : 1 }}>
         <div>
-          <p className="font-bold text-sm" style={{ color: "var(--fg)" }}>{mission.title} {mission.is_hidden && "（非表示）"}</p>
+          <p className="font-bold text-sm" style={{ color: "var(--fg)" }}>
+            {mission.title}
+            {isArchived ? "（アーカイブ済み）" : mission.is_hidden ? "（非表示）" : ""}
+          </p>
           <p className="text-xs mt-0.5 flex flex-wrap gap-1.5">
             <span className="badge-soft">難易度{mission.difficulty}</span>
             <span className="badge">{mission.points}P</span>
             <span className="badge-soft">{SUBMISSION_LABEL[mission.submission_type]}</span>
           </p>
         </div>
-        {confirmDelete ? (
+        {isArchived ? (
+          <div className="flex gap-3 shrink-0">
+            <button disabled={saving} onClick={() => patch({ archived: false })} className="text-sm font-bold" style={{ color: "var(--primary-deep)" }}>復元</button>
+          </div>
+        ) : confirmDelete ? (
           <div className="flex gap-2 shrink-0 items-center">
-            <span className="text-xs" style={{ color: "var(--muted)" }}>削除する？</span>
-            <button disabled={saving} onClick={remove} className="text-sm font-bold" style={{ color: "var(--destructive)" }}>はい</button>
+            <span className="text-xs" style={{ color: "var(--muted)" }}>アーカイブする？</span>
+            <button disabled={saving} onClick={archive} className="text-sm font-bold" style={{ color: "var(--destructive)" }}>はい</button>
             <button onClick={() => setConfirmDelete(false)} className="text-sm font-bold" style={{ color: "var(--muted)" }}>いいえ</button>
           </div>
         ) : (
@@ -479,7 +488,7 @@ function MissionRowEditor({ mission, onSaved, onError }: {
             <button disabled={saving} onClick={() => patch({ is_hidden: !mission.is_hidden })} className="text-sm font-bold" style={{ color: "var(--muted)" }}>
               {mission.is_hidden ? "表示" : "非表示"}
             </button>
-            <button onClick={() => setConfirmDelete(true)} className="text-sm font-bold" style={{ color: "var(--destructive)" }}>削除</button>
+            <button onClick={() => setConfirmDelete(true)} className="text-sm font-bold" style={{ color: "var(--destructive)" }}>アーカイブ</button>
           </div>
         )}
       </div>

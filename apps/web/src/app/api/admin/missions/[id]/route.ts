@@ -13,6 +13,8 @@ const patchSchema = z.object({
   submission_type: z.enum(["TEXT", "LINK", "NONE"]).optional(),
   max_achievement_count: z.number().int().positive().nullable().optional(),
   is_hidden: z.boolean().optional(),
+  // アーカイブの解除（復元）に使う。true=復元（archived_at を NULL に戻す）。
+  archived: z.boolean().optional(),
 });
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -25,9 +27,15 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     return NextResponse.json({ error: "invalid" }, { status: 400 });
   }
 
+  const { archived, ...fields } = parsed.data;
+  const update: Record<string, unknown> = { ...fields };
+  if (archived !== undefined) {
+    update.archived_at = archived ? new Date().toISOString() : null;
+  }
+
   const { data, error } = await getSupabaseAdmin()
     .from("missions")
-    .update(parsed.data)
+    .update(update)
     .eq("id", id)
     .select()
     .single();
@@ -39,22 +47,20 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   return NextResponse.json({ mission: data });
 }
 
+// 物理削除は achievements の参照先を壊すため行わない。archived_at をセットして論理削除する。
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const guard = await requireAdmin(req, ["super", "developer"]);
   if ("error" in guard) return guard.error;
 
   const { id } = await params;
-  const supabase = getSupabaseAdmin();
 
-  // 達成記録が外部キーで紐づくため、先に削除してからミッションを消す。
-  const { error: achError } = await supabase.from("achievements").delete().eq("mission_id", id);
-  if (achError) {
-    return NextResponse.json({ error: "削除に失敗しました" }, { status: 400 });
-  }
+  const { error } = await getSupabaseAdmin()
+    .from("missions")
+    .update({ archived_at: new Date().toISOString() })
+    .eq("id", id);
 
-  const { error } = await supabase.from("missions").delete().eq("id", id);
   if (error) {
-    return NextResponse.json({ error: "削除に失敗しました" }, { status: 400 });
+    return NextResponse.json({ error: "アーカイブに失敗しました" }, { status: 400 });
   }
 
   return NextResponse.json({ ok: true });

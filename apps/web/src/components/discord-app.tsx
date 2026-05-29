@@ -6,12 +6,13 @@ import LoadingScreen from "@/components/loading-screen";
 import ErrorScreen from "@/components/error-screen";
 import NavBar from "@/components/nav-bar";
 import MissionsPage from "@/components/missions-page";
+import TimelinePage from "@/components/timeline-page";
 import LeaderboardPage from "@/components/leaderboard-page";
 import ProfilePage from "@/components/profile-page";
 import AdminDashboard from "@/components/admin-dashboard";
 import type { AdminScope } from "@/types/database";
 
-type Tab = "missions" | "leaderboard" | "profile";
+type Tab = "missions" | "timeline" | "leaderboard" | "profile";
 
 function AppContent() {
   const { status, user, accessToken, error, guildId } = useDiscordAuth();
@@ -71,13 +72,16 @@ function AppContent() {
           起動時に全タブが裏で読み込まれるため、切り替え時は再取得もスピナーも発生しない。 */}
       <main style={{ flex: 1, overflowY: "auto", paddingBottom: "env(safe-area-inset-bottom)" }}>
         <div style={{ display: tab === "missions" ? "block" : "none" }}>
-          <MissionsPage user={user} accessToken={accessToken} />
+          <MissionsPage user={user} accessToken={accessToken} guildId={guildId} onSeeLeaderboard={() => setTab("leaderboard")} />
+        </div>
+        <div style={{ display: tab === "timeline" ? "block" : "none" }}>
+          <TimelinePage />
         </div>
         <div style={{ display: tab === "leaderboard" ? "block" : "none" }}>
           <LeaderboardPage guildId={guildId} currentUser={user} />
         </div>
         <div style={{ display: tab === "profile" ? "block" : "none" }}>
-          <ProfilePage user={user} />
+          <ProfilePage user={user} accessToken={accessToken} />
         </div>
       </main>
     </div>

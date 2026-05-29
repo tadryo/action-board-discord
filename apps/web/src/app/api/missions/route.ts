@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   const admin = getSupabaseAdmin();
   const [missionsRes, categoriesRes, achievementsRes] = await Promise.all([
-    admin.from("missions").select("*").eq("is_hidden", false).order("category_slug"),
+    admin.from("missions").select("*").eq("is_hidden", false).is("archived_at", null).order("category_slug"),
     admin.from("categories").select("*").order("sort_no"),
     // 全ユーザーの達成回数（「みんなで○回達成」用）
     admin.from("achievements").select("mission_id"),
