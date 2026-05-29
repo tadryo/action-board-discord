@@ -11,6 +11,7 @@ interface DeptOption {
 interface Props {
   accessToken: string;
   departments: DeptOption[];
+  initialDepartment?: string;
   onClose: () => void;
   onSubmitted: () => void;
 }
@@ -21,14 +22,14 @@ const SUBMISSION_LABEL: Record<SubmissionType, string> = {
   LINK: "リンク",
 };
 
-export default function ProposeTaskModal({ accessToken, departments, onClose, onSubmitted }: Props) {
+export default function ProposeTaskModal({ accessToken, departments, initialDepartment, onClose, onSubmitted }: Props) {
   const [form, setForm] = useState({
     title: "",
     description: "",
     difficulty: 1,
     points: 10,
     submission_type: "NONE" as SubmissionType,
-    department: departments[0]?.slug ?? "",
+    department: initialDepartment ?? departments[0]?.slug ?? "",
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);

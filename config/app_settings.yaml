@@ -1,8 +1,8 @@
 app_settings:
   - key: app_name
-    value: アクションボード
+    value: チームみらい学生チーム アクションボード
   - key: app_tagline
-    value: アクションでポイントを貯めよう。
+    value: 未来は明るいと信じられる国を、学生から。
   - key: group_label_general
     value: みんなでやろう
   - key: group_label_dept
