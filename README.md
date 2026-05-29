@@ -86,13 +86,13 @@ CLI を使わない場合は、Supabase ダッシュボードの **SQL Editor** 
 
 #### 4. スラッシュコマンドを登録
 
-Railway の Variables に `DISCORD_BOT_TOKEN` を一時的に追加し、Railway のコンソールまたはローカルから実行:
+`apps/web/.env.local` に `DISCORD_BOT_TOKEN` を設定してローカルから実行:
 
 ```bash
 npm run register-commands
 ```
 
-登録後は `DISCORD_BOT_TOKEN` を Variables から削除して構いません。
+スラッシュコマンドは一度登録すれば変わらない限り再実行不要です。`DISCORD_BOT_TOKEN` は Railway の Variables には不要です。
 
 #### 5. ミッションを投入
 
