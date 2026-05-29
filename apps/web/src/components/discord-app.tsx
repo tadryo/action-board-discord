@@ -10,6 +10,7 @@ import TimelinePage from "@/components/timeline-page";
 import LeaderboardPage from "@/components/leaderboard-page";
 import ProfilePage from "@/components/profile-page";
 import AdminDashboard from "@/components/admin-dashboard";
+import UserProfileModal from "@/components/user-profile-modal";
 import type { AdminScope } from "@/types/database";
 
 type Tab = "missions" | "timeline" | "leaderboard" | "profile";
@@ -20,6 +21,7 @@ function AppContent() {
   const [showAdmin, setShowAdmin] = useState(false);
   const [adminScope, setAdminScope] = useState<AdminScope | null>(null);
   const [selfDiscordId, setSelfDiscordId] = useState<string | null>(null);
+  const [profileUserId, setProfileUserId] = useState<string | null>(null);
 
   // 自分が管理者（代表・副代表・部門長・開発者）か確認し、該当時のみ承認ボタンを出す。
   useEffect(() => {
@@ -72,18 +74,19 @@ function AppContent() {
           起動時に全タブが裏で読み込まれるため、切り替え時は再取得もスピナーも発生しない。 */}
       <main style={{ flex: 1, overflowY: "auto", paddingBottom: "env(safe-area-inset-bottom)" }}>
         <div style={{ display: tab === "missions" ? "block" : "none" }}>
-          <MissionsPage user={user} accessToken={accessToken} guildId={guildId} onSeeLeaderboard={() => setTab("leaderboard")} />
+          <MissionsPage user={user} accessToken={accessToken} guildId={guildId} onSeeLeaderboard={() => setTab("leaderboard")} onSelectUser={setProfileUserId} />
         </div>
         <div style={{ display: tab === "timeline" ? "block" : "none" }}>
-          <TimelinePage />
+          <TimelinePage onSelectUser={setProfileUserId} />
         </div>
         <div style={{ display: tab === "leaderboard" ? "block" : "none" }}>
-          <LeaderboardPage guildId={guildId} currentUser={user} />
+          <LeaderboardPage guildId={guildId} currentUser={user} onSelectUser={setProfileUserId} />
         </div>
         <div style={{ display: tab === "profile" ? "block" : "none" }}>
           <ProfilePage user={user} accessToken={accessToken} />
         </div>
       </main>
+      {profileUserId && <UserProfileModal discordId={profileUserId} onClose={() => setProfileUserId(null)} />}
     </div>
   );
 }

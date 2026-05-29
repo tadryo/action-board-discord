@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useDiscordActions } from "@/components/discord-provider";
 import { levelFromPoints } from "@/lib/levels";
+import SocialLinks from "@/components/social-links";
 import type { AchievementRow, BadgeWithEarned, MissionRow, UserRow } from "@/types/database";
 
 interface AchievementDetail extends AchievementRow {
@@ -120,19 +121,7 @@ export default function ProfilePage({ user, accessToken }: { user: UserRow; acce
             </div>
           </div>
         ) : (
-          <div className="flex flex-wrap gap-2">
-            {twitter && (
-              <a href={twitter} target="_blank" rel="noopener noreferrer"
-                className="text-sm font-bold rounded-full px-3 py-1.5" style={{ background: "var(--bg-deep)", color: "var(--fg)" }}>𝕏 X</a>
-            )}
-            {github && (
-              <a href={github} target="_blank" rel="noopener noreferrer"
-                className="text-sm font-bold rounded-full px-3 py-1.5" style={{ background: "var(--bg-deep)", color: "var(--fg)" }}>🐙 GitHub</a>
-            )}
-            {!twitter && !github && (
-              <p className="text-xs" style={{ color: "var(--muted)" }}>未設定（編集から追加できます）</p>
-            )}
-          </div>
+          <SocialLinks twitterUrl={twitter || null} githubUrl={github || null} emptyText="未設定（編集から追加できます）" />
         )}
       </div>
 

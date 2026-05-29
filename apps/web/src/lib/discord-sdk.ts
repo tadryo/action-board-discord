@@ -10,3 +10,14 @@ export async function getDiscordSdk(): Promise<DiscordSDK> {
   }
   return _sdk;
 }
+
+// アクティビティ(iframe)内では通常の <a> での外部遷移がブロックされるため、
+// SDK 経由で外部リンクを開く。SDK が無い環境(ブラウザ直開き等)では window.open にフォールバック。
+export async function openExternalLink(url: string): Promise<void> {
+  try {
+    const sdk = await getDiscordSdk();
+    await sdk.commands.openExternalLink({ url });
+  } catch {
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
+}

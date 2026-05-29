@@ -6,6 +6,7 @@ import { APP_NAME_DEFAULT, APP_TAGLINE_DEFAULT } from "@/lib/app-config";
 import MissionCard from "@/components/mission-card";
 import ProposeTaskModal from "@/components/propose-task-modal";
 import LeaderboardTop3 from "@/components/leaderboard-top3";
+import TeamStats from "@/components/team-stats";
 import type { CategoryRow, MissionRow, MissionWithAchievements, UserRow } from "@/types/database";
 
 function CategorySection({ category, items, accessToken, onAchieved, onPropose }: {
@@ -27,7 +28,7 @@ function CategorySection({ category, items, accessToken, onAchieved, onPropose }
             className="shrink-0 bg-gradient-primary text-white rounded-full px-4 py-1.5 font-bold text-xs transition-transform active:scale-95"
             style={{ boxShadow: "var(--shadow-soft)" }}
           >
-            ＋ タスクを提案
+            ＋ ミッションを提案
           </button>
         )}
       </div>
@@ -35,6 +36,9 @@ function CategorySection({ category, items, accessToken, onAchieved, onPropose }
         {items.map((m) => (
           <MissionCard key={m.id} mission={m} accessToken={accessToken} onAchieved={(pts) => onAchieved(m.id, pts)} />
         ))}
+        {items.length === 0 && (
+          <p className="text-sm px-1 py-4" style={{ color: "var(--muted)" }}>まだミッションがありません。</p>
+        )}
         <div style={{ flex: "0 0 0.5rem" }} />
       </div>
     </section>
@@ -46,9 +50,10 @@ interface Props {
   accessToken: string;
   guildId: string;
   onSeeLeaderboard?: () => void;
+  onSelectUser?: (discordId: string) => void;
 }
 
-export default function MissionsPage({ user, accessToken, guildId, onSeeLeaderboard }: Props) {
+export default function MissionsPage({ user, accessToken, guildId, onSeeLeaderboard, onSelectUser }: Props) {
   const [missions, setMissions] = useState<MissionWithAchievements[]>([]);
   const [categories, setCategories] = useState<CategoryRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -57,6 +62,7 @@ export default function MissionsPage({ user, accessToken, guildId, onSeeLeaderbo
   const [appTagline, setAppTagline] = useState(APP_TAGLINE_DEFAULT);
   const [groupLabelGeneral, setGroupLabelGeneral] = useState("みんなでやろう");
   const [groupLabelDept, setGroupLabelDept] = useState("部門別ミッション");
+  const [seasonName, setSeasonName] = useState<string | null>(null);
   const [activeGroup, setActiveGroup] = useState<"general" | "dept">("general");
   const [proposeDept, setProposeDept] = useState<string | null>(null);
   const { recordAchievement } = useDiscordActions();
@@ -69,6 +75,12 @@ export default function MissionsPage({ user, accessToken, guildId, onSeeLeaderbo
         if (data.app_tagline) setAppTagline(data.app_tagline);
         if (data.group_label_general) setGroupLabelGeneral(data.group_label_general);
         if (data.group_label_dept) setGroupLabelDept(data.group_label_dept);
+      })
+      .catch(() => {});
+    fetch("/api/seasons/active")
+      .then((r) => r.json())
+      .then((data: { season?: { name?: string } | null }) => {
+        if (data.season?.name) setSeasonName(data.season.name);
       })
       .catch(() => {});
   }, []);
@@ -145,9 +157,9 @@ export default function MissionsPage({ user, accessToken, guildId, onSeeLeaderbo
   const completedCount = missions.filter((m) => m.is_completed).length;
   const progress = missions.length > 0 ? Math.round((completedCount / missions.length) * 100) : 0;
   const allGrouped = categories
-    .map((c) => ({ category: c, items: missions.filter((m) => m.category_slug === c.slug) }))
-    .filter((g) => g.items.length > 0);
-  const generalGroups = allGrouped.filter((g) => g.category.group_key !== "dept");
+    .map((c) => ({ category: c, items: missions.filter((m) => m.category_slug === c.slug) }));
+  // 一般カテゴリは空なら隠す。部門は空でも提案先として常に表示する。
+  const generalGroups = allGrouped.filter((g) => g.category.group_key !== "dept" && g.items.length > 0);
   const deptGroups = allGrouped.filter((g) => g.category.group_key === "dept");
   const deptOptions = categories
     .filter((c) => c.group_key === "dept" && c.department)
@@ -157,7 +169,15 @@ export default function MissionsPage({ user, accessToken, guildId, onSeeLeaderbo
     <div className="pb-8">
       <div className="bg-gradient-hero px-5 pt-6 pb-7">
         <div className="max-w-3xl mx-auto">
-          <h1 className="text-2xl font-black" style={{ color: "#0a0a0a" }}>🎯 {appName}</h1>
+          <div className="flex items-center justify-between gap-2">
+            <h1 className="text-2xl font-black" style={{ color: "#0a0a0a" }}>🎯 {appName}</h1>
+            {seasonName && (
+              <span className="shrink-0 rounded-full px-3 py-1 text-xs font-bold"
+                style={{ background: "var(--card-bg)", color: "var(--primary-deep)", border: "1px solid var(--border-soft)" }}>
+                {seasonName}
+              </span>
+            )}
+          </div>
           <p className="text-sm mt-1 font-semibold" style={{ color: "#0f766e" }}>
             {appTagline}
           </p>
@@ -170,7 +190,8 @@ export default function MissionsPage({ user, accessToken, guildId, onSeeLeaderbo
               <div className="progress-fill" style={{ width: `${progress}%` }} />
             </div>
           </div>
-          <LeaderboardTop3 guildId={guildId} currentUser={user} onSeeAll={onSeeLeaderboard} />
+          <TeamStats />
+          <LeaderboardTop3 guildId={guildId} currentUser={user} onSeeAll={onSeeLeaderboard} onSelectUser={onSelectUser} />
         </div>
       </div>
 

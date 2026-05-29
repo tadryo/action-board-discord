@@ -76,6 +76,24 @@ export interface Database {
           awarded_at: string;
         };
       };
+      rejected_proposals: {
+        Row: {
+          id: string;
+          title: string;
+          description: string | null;
+          difficulty: number;
+          points: number;
+          submission_type: SubmissionType;
+          department: string;
+          proposed_by_discord_id: string;
+          proposed_by_username: string | null;
+          review_reason: string | null;
+          reviewed_by_discord_id: string | null;
+          reviewed_at: string | null;
+          created_at: string;
+          rejected_at: string;
+        };
+      };
       categories: {
         Row: {
           id: string;
@@ -138,6 +156,7 @@ export type DepartmentRow = Database["public"]["Tables"]["departments"]["Row"];
 export type AdminRow = Database["public"]["Tables"]["admins"]["Row"];
 export type MissionProposalRow = Database["public"]["Tables"]["mission_proposals"]["Row"];
 export type SeasonRow = Database["public"]["Tables"]["seasons"]["Row"];
+export type RejectedProposalRow = Database["public"]["Tables"]["rejected_proposals"]["Row"];
 export type BadgeRow = Database["public"]["Tables"]["badges"]["Row"];
 export type UserBadgeRow = Database["public"]["Tables"]["user_badges"]["Row"];
 

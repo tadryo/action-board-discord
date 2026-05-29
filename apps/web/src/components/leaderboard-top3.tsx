@@ -11,10 +11,11 @@ function avatarUrl(discordUserId: string, avatar: string | null) {
 const RANK_BADGES = ["🥇", "🥈", "🥉"];
 
 // ホーム上部に出すコンパクトなトップ3ウィジェット。全件はリーダーボードタブへ。
-export default function LeaderboardTop3({ guildId, currentUser, onSeeAll }: {
+export default function LeaderboardTop3({ guildId, currentUser, onSeeAll, onSelectUser }: {
   guildId: string;
   currentUser: UserRow;
   onSeeAll?: () => void;
+  onSelectUser?: (discordId: string) => void;
 }) {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loaded, setLoaded] = useState(false);
@@ -61,7 +62,8 @@ export default function LeaderboardTop3({ guildId, currentUser, onSeeAll }: {
           const isMe = e.discord_user_id === currentUser.discord_user_id;
           return (
             <div key={e.discord_user_id}
-              className="flex items-center gap-3 px-2 py-1.5 rounded-lg"
+              onClick={() => onSelectUser?.(e.discord_user_id)}
+              className="flex items-center gap-3 px-2 py-1.5 rounded-lg cursor-pointer transition-transform active:scale-[0.99]"
               style={{
                 background: isMe ? "var(--primary-50)" : "transparent",
                 borderBottom: idx !== top3.length - 1 ? "1px solid var(--border-soft)" : "none",

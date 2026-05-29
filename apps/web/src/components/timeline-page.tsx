@@ -21,7 +21,7 @@ function relativeTime(iso: string): string {
   return new Date(iso).toLocaleDateString("ja-JP", { month: "short", day: "numeric" });
 }
 
-export default function TimelinePage() {
+export default function TimelinePage({ onSelectUser }: { onSelectUser?: (discordId: string) => void }) {
   const [entries, setEntries] = useState<TimelineEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const { achievementVersion } = useDiscordActions();
@@ -58,7 +58,8 @@ export default function TimelinePage() {
         <div className="card p-2 flex flex-col">
           {entries.map((e, idx) => (
             <div key={e.id}
-              className="flex items-center gap-3 px-3 py-2.5"
+              onClick={() => onSelectUser?.(e.discord_user_id)}
+              className="flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-transform active:scale-[0.99]"
               style={{ borderBottom: idx !== entries.length - 1 ? "1px solid var(--border-soft)" : "none" }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={avatarUrl(e.discord_user_id, e.avatar)} alt={e.username}

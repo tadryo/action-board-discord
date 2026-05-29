@@ -47,11 +47,28 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   };
 
   if (parsed.data.action === "reject") {
-    const { error } = await supabase
-      .from("mission_proposals")
-      .update({ status: "rejected", review_reason: parsed.data.review_reason, ...reviewed })
-      .eq("id", id);
-    if (error) {
+    // 却下した提案は監査用の保管庫へ移し、mission_proposals からは削除する。
+    const { error: archiveError } = await supabase.from("rejected_proposals").insert({
+      id: proposal.id,
+      title: proposal.title,
+      description: proposal.description,
+      difficulty: proposal.difficulty,
+      points: proposal.points,
+      submission_type: proposal.submission_type,
+      department: proposal.department,
+      proposed_by_discord_id: proposal.proposed_by_discord_id,
+      proposed_by_username: proposal.proposed_by_username,
+      review_reason: parsed.data.review_reason,
+      reviewed_by_discord_id: reviewed.reviewed_by_discord_id,
+      reviewed_at: reviewed.reviewed_at,
+      created_at: proposal.created_at,
+    });
+    if (archiveError) {
+      return NextResponse.json({ error: "却下に失敗しました" }, { status: 500 });
+    }
+
+    const { error: deleteError } = await supabase.from("mission_proposals").delete().eq("id", id);
+    if (deleteError) {
       return NextResponse.json({ error: "却下に失敗しました" }, { status: 500 });
     }
     return NextResponse.json({ ok: true, status: "rejected" });

@@ -77,7 +77,7 @@ export default function ProposeTaskModal({ accessToken, departments, initialDepa
         ) : (
           <>
             <div className="bg-gradient-hero px-5 py-4">
-              <h3 className="font-black text-lg" style={{ color: "#0a0a0a" }}>🎯 タスクを提案</h3>
+              <h3 className="font-black text-lg" style={{ color: "#0a0a0a" }}>🎯 ミッションを提案</h3>
               <p className="text-xs mt-0.5 font-semibold" style={{ color: "var(--primary-deep)" }}>部門の仲間に手伝ってほしいことを提案しよう。</p>
             </div>
             <div className="p-5 flex flex-col gap-3">

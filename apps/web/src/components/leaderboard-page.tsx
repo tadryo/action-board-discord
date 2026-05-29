@@ -10,7 +10,7 @@ function avatarUrl(discordUserId: string, avatar: string | null) {
 
 const RANK_BADGES = ["🥇", "🥈", "🥉"];
 
-export default function LeaderboardPage({ guildId, currentUser }: { guildId: string; currentUser: UserRow }) {
+export default function LeaderboardPage({ guildId, currentUser, onSelectUser }: { guildId: string; currentUser: UserRow; onSelectUser?: (discordId: string) => void }) {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -60,7 +60,8 @@ export default function LeaderboardPage({ guildId, currentUser }: { guildId: str
             const isMe = e.discord_user_id === currentUser.discord_user_id;
             return (
               <div key={e.discord_user_id}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-xl"
+                onClick={() => onSelectUser?.(e.discord_user_id)}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-transform active:scale-[0.99]"
                 style={{
                   background: isMe ? "var(--primary-50)" : "transparent",
                   borderBottom: idx !== rankedEntries.length - 1 ? "1px solid var(--border-soft)" : "none",

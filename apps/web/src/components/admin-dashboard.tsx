@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
-import type { AdminRow, AdminScope, CategoryRow, DepartmentRow, MissionProposalRow, MissionRow, ProposalStatus, SubmissionType } from "@/types/database";
+import type { AdminRow, AdminScope, CategoryRow, DepartmentRow, MissionProposalRow, MissionRow, RejectedProposalRow, SeasonRow, SubmissionType } from "@/types/database";
 
 const SUBMISSION_LABEL: Record<SubmissionType, string> = {
   NONE: "提出なし",
@@ -43,11 +43,12 @@ interface Props {
   selfDiscordId?: string | null;
 }
 
-type Tab = "proposals" | "missions" | "admins";
+type Tab = "proposals" | "missions" | "seasons" | "admins";
 
 const TAB_LABEL: Record<Tab, string> = {
   proposals: "提案承認",
   missions: "ミッション管理",
+  seasons: "シーズン",
   admins: "メンバー権限",
 };
 
@@ -61,7 +62,7 @@ function Loading() {
 
 export default function AdminDashboard({ scope, accessToken, selfDiscordId }: Props) {
   const canManage = scope === "super" || scope === "developer";
-  const tabs: Tab[] = canManage ? ["proposals", "missions", "admins"] : ["proposals"];
+  const tabs: Tab[] = canManage ? ["proposals", "missions", "seasons", "admins"] : ["proposals"];
   const [tab, setTab] = useState<Tab>("proposals");
 
   return (
@@ -84,6 +85,9 @@ export default function AdminDashboard({ scope, accessToken, selfDiscordId }: Pr
             <div style={{ display: tab === "missions" ? "block" : "none" }}>
               <MissionsManager />
             </div>
+            <div style={{ display: tab === "seasons" ? "block" : "none" }}>
+              <SeasonsManager />
+            </div>
             <div style={{ display: tab === "admins" ? "block" : "none" }}>
               <AdminsManager selfDiscordId={selfDiscordId} />
             </div>
@@ -94,15 +98,10 @@ export default function AdminDashboard({ scope, accessToken, selfDiscordId }: Pr
   );
 }
 
-const PROPOSAL_STATUS_LABEL: Record<ProposalStatus, string> = {
-  pending: "承認待ち",
-  approved: "承認済み",
-  rejected: "却下",
-};
-
 function ProposalsManager() {
   const apiFetch = useApiFetch();
   const [proposals, setProposals] = useState<MissionProposalRow[]>([]);
+  const [rejected, setRejected] = useState<RejectedProposalRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -113,8 +112,9 @@ function ProposalsManager() {
     setLoading(true);
     const res = await apiFetch("/api/admin/proposals");
     if (res.ok) {
-      const data = (await res.json()) as { proposals: MissionProposalRow[] };
+      const data = (await res.json()) as { proposals: MissionProposalRow[]; rejected: RejectedProposalRow[] };
       setProposals(data.proposals);
+      setRejected(data.rejected ?? []);
     }
     setLoading(false);
   }, [apiFetch]);
@@ -145,7 +145,6 @@ function ProposalsManager() {
   if (loading) return <Loading />;
 
   const pending = proposals.filter((p) => p.status === "pending");
-  const history = proposals.filter((p) => p.status !== "pending");
 
   return (
     <div className="flex flex-col gap-6">
@@ -192,24 +191,17 @@ function ProposalsManager() {
         </div>
       </div>
 
-      {history.length > 0 && (
+      {rejected.length > 0 && (
         <div>
-          <h3 className="font-extrabold text-sm mb-2" style={{ color: "var(--fg)" }}>処理済み</h3>
+          <h3 className="font-extrabold text-sm mb-2" style={{ color: "var(--fg)" }}>却下済み</h3>
           <div className="flex flex-col gap-2">
-            {history.map((p) => (
+            {rejected.map((p) => (
               <div key={p.id} className="card p-3">
                 <p className="text-sm flex items-center gap-2" style={{ color: "var(--fg)" }}>
                   <span>{p.title}</span>
-                  <span
-                    className="badge"
-                    style={p.status === "approved"
-                      ? { background: "var(--primary-50)", color: "var(--primary-700)" }
-                      : { background: "#fef2f2", color: "var(--destructive)" }}
-                  >
-                    {PROPOSAL_STATUS_LABEL[p.status]}
-                  </span>
+                  <span className="badge" style={{ background: "#fef2f2", color: "var(--destructive)" }}>却下</span>
                 </p>
-                {p.status === "rejected" && p.review_reason && (
+                {p.review_reason && (
                   <p className="text-xs mt-1" style={{ color: "var(--muted)" }}>却下理由: {p.review_reason}</p>
                 )}
               </div>
@@ -284,6 +276,109 @@ function MissionsManager() {
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+function SeasonsManager() {
+  const apiFetch = useApiFetch();
+  const [seasons, setSeasons] = useState<SeasonRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [msg, setMsg] = useState<string | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [name, setName] = useState("");
+  const [slug, setSlug] = useState("");
+  const [activateOnCreate, setActivateOnCreate] = useState(false);
+  const [creating, setCreating] = useState(false);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    const res = await apiFetch("/api/admin/seasons");
+    if (res.ok) {
+      const data = (await res.json()) as { seasons: SeasonRow[] };
+      setSeasons(data.seasons);
+    }
+    setLoading(false);
+  }, [apiFetch]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const create = async () => {
+    setCreating(true);
+    setMsg(null);
+    const res = await apiFetch("/api/admin/seasons", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, slug: slug || undefined, activate: activateOnCreate }),
+    });
+    setCreating(false);
+    if (res.ok) {
+      setName("");
+      setSlug("");
+      setActivateOnCreate(false);
+      load();
+    } else {
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      setMsg(data.error ?? "作成に失敗しました");
+    }
+  };
+
+  const activate = async (id: string) => {
+    setBusyId(id);
+    setMsg(null);
+    const res = await apiFetch(`/api/admin/seasons/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ activate: true }),
+    });
+    setBusyId(null);
+    if (res.ok) load();
+    else {
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      setMsg(data.error ?? "稼働切り替えに失敗しました");
+    }
+  };
+
+  if (loading) return <Loading />;
+
+  return (
+    <div className="flex flex-col gap-6">
+      {msg && <p className="text-sm" style={{ color: "var(--destructive)" }}>{msg}</p>}
+
+      <div className="card p-4 flex flex-col gap-2">
+        <p className="font-extrabold text-sm" style={{ color: "var(--fg)" }}>新しいシーズン</p>
+        <Input label="シーズン名" value={name} onChange={setName} />
+        <Input label="slug（任意・英小文字数字-）" value={slug} onChange={setSlug} />
+        <label className="flex items-center gap-2 text-sm font-bold" style={{ color: "var(--muted-fg)" }}>
+          <input type="checkbox" checked={activateOnCreate} onChange={(e) => setActivateOnCreate(e.target.checked)} />
+          作成と同時に稼働中にする
+        </label>
+        <button disabled={creating || !name} onClick={create} className={`self-start ${primaryBtn}`}>
+          {creating ? "作成中…" : "作成"}
+        </button>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        {seasons.map((s) => (
+          <div key={s.id} className="card p-3 flex items-center justify-between">
+            <div className="min-w-0">
+              <p className="font-bold text-sm flex items-center gap-2" style={{ color: "var(--fg)" }}>
+                {s.name}
+                {s.is_active && <span className="badge">稼働中</span>}
+              </p>
+              <p className="text-xs mt-0.5" style={{ color: "var(--muted)" }}>{s.slug}</p>
+            </div>
+            {!s.is_active && (
+              <button disabled={busyId === s.id} onClick={() => activate(s.id)} className="text-sm font-bold shrink-0" style={{ color: "var(--primary-deep)" }}>
+                稼働にする
+              </button>
+            )}
+          </div>
+        ))}
+        {seasons.length === 0 && <p className="text-sm" style={{ color: "var(--muted)" }}>シーズンがありません。</p>}
+      </div>
     </div>
   );
 }
