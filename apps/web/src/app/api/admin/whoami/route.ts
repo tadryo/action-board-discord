@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
   const guard = await requireAdmin(req);
   if ("error" in guard) return guard.error;
   return NextResponse.json(
-    { scope: guard.session.scope, department: guard.session.dept, name: guard.session.name },
+    { discord_user_id: guard.session.sub, scope: guard.session.scope, department: guard.session.dept, name: guard.session.name },
     { headers: { "Cache-Control": "private, no-store" } },
   );
 }

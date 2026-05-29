@@ -34,6 +34,7 @@ function useApiFetch() {
 interface Props {
   scope: AdminScope;
   accessToken?: string;
+  selfDiscordId?: string | null;
 }
 
 type Tab = "proposals" | "missions" | "admins";
@@ -44,7 +45,7 @@ const TAB_LABEL: Record<Tab, string> = {
   admins: "メンバー権限",
 };
 
-export default function AdminDashboard({ scope, accessToken }: Props) {
+export default function AdminDashboard({ scope, accessToken, selfDiscordId }: Props) {
   const canManage = scope === "super" || scope === "developer";
   const tabs: Tab[] = canManage ? ["proposals", "missions", "admins"] : ["proposals"];
   const [tab, setTab] = useState<Tab>("proposals");
@@ -66,7 +67,7 @@ export default function AdminDashboard({ scope, accessToken }: Props) {
         </div>
         {tab === "proposals" && <ProposalsManager />}
         {tab === "missions" && canManage && <MissionsManager />}
-        {tab === "admins" && canManage && <AdminsManager />}
+        {tab === "admins" && canManage && <AdminsManager selfDiscordId={selfDiscordId} />}
       </div>
     </TokenContext.Provider>
   );
@@ -208,8 +209,6 @@ function MissionsManager() {
 
   // 「みんなでやろう」カテゴリのみ管理対象
   const generalCategories = categories.filter((c) => c.group_key !== "dept");
-  const generalSlugs = new Set(generalCategories.map((c) => c.slug));
-  const generalMissions = missions.filter((m) => generalSlugs.has(m.category_slug));
 
   if (loading) return <p className="text-sm" style={{ color: "#6b7280" }}>読み込み中…</p>;
 
@@ -217,14 +216,55 @@ function MissionsManager() {
     <div className="flex flex-col gap-6">
       {msg && <p className="text-sm" style={{ color: "#dc2626" }}>{msg}</p>}
       <CreateMissionForm categories={generalCategories} onCreated={load} onError={setMsg} />
-      <div className="flex flex-col gap-3">
-        {generalMissions.map((m) => (
-          <MissionRowEditor key={m.id} mission={m} onSaved={load} onError={setMsg} />
+      <div className="flex flex-col gap-2">
+        {generalCategories.map((c) => (
+          <CategoryFolder
+            key={c.slug}
+            category={c}
+            missions={missions.filter((m) => m.category_slug === c.slug)}
+            onSaved={load}
+            onError={setMsg}
+          />
         ))}
-        {generalMissions.length === 0 && (
-          <p className="text-sm" style={{ color: "#6b7280" }}>ミッションがありません。</p>
+        {generalCategories.length === 0 && (
+          <p className="text-sm" style={{ color: "#6b7280" }}>カテゴリがありません。</p>
         )}
       </div>
+    </div>
+  );
+}
+
+function CategoryFolder({ category, missions, onSaved, onError }: {
+  category: CategoryRow;
+  missions: MissionRow[];
+  onSaved: () => void;
+  onError: (m: string | null) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="card" style={{ overflow: "hidden" }}>
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="w-full flex items-center justify-between px-4 py-3 text-left"
+        style={{ background: "#f9fafb" }}
+      >
+        <span className="font-bold text-sm flex items-center gap-2" style={{ color: "#111827" }}>
+          <span style={{ color: "#6b7280" }}>{open ? "📂" : "📁"}</span>
+          {category.title}
+          <span className="font-normal" style={{ color: "#9ca3af" }}>（{missions.length}）</span>
+        </span>
+        <span style={{ color: "#9ca3af" }}>{open ? "▾" : "▸"}</span>
+      </button>
+      {open && (
+        <div className="flex flex-col gap-2 p-3" style={{ borderTop: "1px solid #f3f4f6" }}>
+          {missions.map((m) => (
+            <MissionRowEditor key={m.id} mission={m} onSaved={onSaved} onError={onError} />
+          ))}
+          {missions.length === 0 && (
+            <p className="text-sm" style={{ color: "#6b7280" }}>このカテゴリにミッションはありません。</p>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -388,10 +428,17 @@ function MissionRowEditor({ mission, onSaved, onError }: {
   );
 }
 
-function AdminsManager() {
+interface BoardMember {
+  discord_user_id: string;
+  username: string | null;
+  avatar: string | null;
+}
+
+function AdminsManager({ selfDiscordId }: { selfDiscordId?: string | null }) {
   const apiFetch = useApiFetch();
   const [admins, setAdmins] = useState<AdminRow[]>([]);
   const [departments, setDepartments] = useState<DepartmentRow[]>([]);
+  const [members, setMembers] = useState<BoardMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState<string | null>(null);
   const [form, setForm] = useState({ discord_user_id: "", username: "", title: "部門長", scope: "dept" as AdminScope, department: "" });
@@ -399,12 +446,19 @@ function AdminsManager() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const res = await apiFetch("/api/admin/admins");
-    if (res.ok) {
-      const data = (await res.json()) as { admins: AdminRow[]; departments: DepartmentRow[] };
+    const [adminsRes, usersRes] = await Promise.all([
+      apiFetch("/api/admin/admins"),
+      apiFetch("/api/admin/users"),
+    ]);
+    if (adminsRes.ok) {
+      const data = (await adminsRes.json()) as { admins: AdminRow[]; departments: DepartmentRow[] };
       setAdmins(data.admins);
       setDepartments(data.departments);
       setForm((f) => ({ ...f, department: f.department || data.departments[0]?.slug || "" }));
+    }
+    if (usersRes.ok) {
+      const data = (await usersRes.json()) as { users: BoardMember[] };
+      setMembers(data.users);
     }
     setLoading(false);
   }, [apiFetch]);
@@ -456,8 +510,21 @@ function AdminsManager() {
       {msg && <p className="text-sm" style={{ color: "#dc2626" }}>{msg}</p>}
       <div className="card p-4 flex flex-col gap-2">
         <p className="font-bold text-sm" style={{ color: "#111827" }}>メンバーに権限を付与 / 更新</p>
-        <Input label="DiscordユーザーID（数字）" value={form.discord_user_id} onChange={(v) => setForm({ ...form, discord_user_id: v })} />
-        <Input label="表示名（任意）" value={form.username} onChange={(v) => setForm({ ...form, username: v })} />
+        <label className="text-sm font-bold" style={{ color: "#374151" }}>メンバー
+          <select
+            className="block w-full mt-1 border rounded px-2 py-1.5 text-sm font-normal"
+            value={form.discord_user_id}
+            onChange={(e) => {
+              const m = members.find((x) => x.discord_user_id === e.target.value);
+              setForm({ ...form, discord_user_id: e.target.value, username: m?.username ?? "" });
+            }}
+          >
+            <option value="">選択してください</option>
+            {members.map((m) => (
+              <option key={m.discord_user_id} value={m.discord_user_id}>{m.username ?? m.discord_user_id}</option>
+            ))}
+          </select>
+        </label>
         <Input label="役職名（例: 部門長）" value={form.title} onChange={(v) => setForm({ ...form, title: v })} />
         <label className="text-sm font-bold" style={{ color: "#374151" }}>権限
           <select className="block w-full mt-1 border rounded px-2 py-1.5 text-sm" value={form.scope} onChange={(e) => setForm({ ...form, scope: e.target.value as AdminScope })}>
@@ -471,7 +538,7 @@ function AdminsManager() {
             </select>
           </label>
         )}
-        <button disabled={saving} onClick={submit} className="self-start px-4 py-2 rounded-lg font-bold text-white text-sm" style={{ background: "#0f766e" }}>{saving ? "保存中…" : "付与 / 更新"}</button>
+        <button disabled={saving || !form.discord_user_id} onClick={submit} className="self-start px-4 py-2 rounded-lg font-bold text-white text-sm" style={{ background: form.discord_user_id ? "#0f766e" : "#9ca3af" }}>{saving ? "保存中…" : "付与 / 更新"}</button>
       </div>
       <div className="flex flex-col gap-2">
         {admins.map((a) => (
@@ -480,7 +547,9 @@ function AdminsManager() {
               <p className="font-bold text-sm" style={{ color: "#111827" }}>{a.username ?? a.discord_user_id} <span className="font-normal" style={{ color: "#6b7280" }}>{a.title}</span></p>
               <p className="text-xs" style={{ color: "#6b7280" }}>{SCOPE_OPTIONS.find((s) => s.value === a.scope)?.label}{a.department && `・${deptName(a.department)}`}</p>
             </div>
-            <button onClick={() => revoke(a.discord_user_id)} className="text-sm font-bold" style={{ color: "#dc2626" }}>削除</button>
+            {a.discord_user_id !== selfDiscordId && (
+              <button onClick={() => revoke(a.discord_user_id)} className="text-sm font-bold" style={{ color: "#dc2626" }}>削除</button>
+            )}
           </div>
         ))}
       </div>

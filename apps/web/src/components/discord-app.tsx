@@ -18,6 +18,7 @@ function AppContent() {
   const [tab, setTab] = useState<Tab>("missions");
   const [showAdmin, setShowAdmin] = useState(false);
   const [adminScope, setAdminScope] = useState<AdminScope | null>(null);
+  const [selfDiscordId, setSelfDiscordId] = useState<string | null>(null);
 
   // 自分が管理者（代表・副代表・部門長・開発者）か確認し、該当時のみ承認ボタンを出す。
   useEffect(() => {
@@ -25,8 +26,11 @@ function AppContent() {
     let cancelled = false;
     fetch("/api/admin/whoami", { headers: { Authorization: `Bearer ${accessToken}` } })
       .then((r) => (r.ok ? r.json() : null))
-      .then((data: { scope: AdminScope } | null) => {
-        if (!cancelled && data) setAdminScope(data.scope);
+      .then((data: { scope: AdminScope; discord_user_id: string } | null) => {
+        if (!cancelled && data) {
+          setAdminScope(data.scope);
+          setSelfDiscordId(data.discord_user_id);
+        }
       })
       .catch(() => {});
     return () => { cancelled = true; };
@@ -50,7 +54,7 @@ function AppContent() {
           <span className="text-sm font-extrabold" style={{ color: "var(--fg)" }}>承認・管理</span>
         </div>
         <main style={{ flex: 1, overflowY: "auto", padding: "1rem", paddingBottom: "env(safe-area-inset-bottom)" }}>
-          <AdminDashboard scope={adminScope} accessToken={accessToken} />
+          <AdminDashboard scope={adminScope} accessToken={accessToken} selfDiscordId={selfDiscordId} />
         </main>
       </div>
     );
