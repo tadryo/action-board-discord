@@ -1,7 +1,13 @@
-import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
-import { ADMIN_COOKIE, verifySession, type AdminSession } from "@/lib/admin-session";
+import type { AdminScope } from "@/types/database";
 import { resolveAdmin } from "@/lib/admin-auth";
+
+export interface AdminSession {
+  sub: string; // discord_user_id
+  name: string;
+  scope: AdminScope;
+  dept: string | null;
+}
 
 // アクティビティ内（Discord埋め込みSDK）からの Bearer トークンで管理者を解決する。
 async function fromBearer(req: NextRequest): Promise<AdminSession | null> {
@@ -21,21 +27,16 @@ async function fromBearer(req: NextRequest): Promise<AdminSession | null> {
   const admin = await resolveAdmin(user.id, user.global_name || user.username);
   if (!admin) return null;
 
-  return { sub: admin.discord_user_id, name: admin.username, scope: admin.scope, dept: admin.department, exp: 0 };
+  return { sub: admin.discord_user_id, name: admin.username, scope: admin.scope, dept: admin.department };
 }
 
-// APIルート用のガード。
-// 認証方法は2通り: アクティビティからの Bearer トークン、または /admin の署名Cookie。
-// セッションが無効なら 401、scope不足なら 403 を返す。成功時は { session } を返す。
+// APIルート用のガード。認証はアクティビティからの Bearer トークンのみ。
+// 未認証なら 401、scope不足なら 403 を返す。成功時は { session } を返す。
 export async function requireAdmin(
   req: NextRequest,
-  allowed?: AdminSession["scope"][],
+  allowed?: AdminScope[],
 ): Promise<{ session: AdminSession } | { error: NextResponse }> {
-  let session = await fromBearer(req);
-  if (!session) {
-    const cookieStore = await cookies();
-    session = verifySession(cookieStore.get(ADMIN_COOKIE)?.value);
-  }
+  const session = await fromBearer(req);
   if (!session) {
     return { error: NextResponse.json({ error: "unauthorized" }, { status: 401 }) };
   }
