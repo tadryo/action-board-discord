@@ -14,6 +14,7 @@ export interface Database {
           created_at: string;
           twitter_url: string | null;
           github_url: string | null;
+          instagram_url: string | null;
         };
       };
       missions: {

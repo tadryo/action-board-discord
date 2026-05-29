@@ -195,7 +195,7 @@ export default function MissionsPage({ user, accessToken, guildId, onSeeLeaderbo
         </div>
       </div>
 
-      <div className="max-w-3xl mx-auto pt-4">
+      <div className="pt-4">
         <div className="flex gap-2 px-5 mb-5">
           <button
             onClick={() => setActiveGroup("general")}

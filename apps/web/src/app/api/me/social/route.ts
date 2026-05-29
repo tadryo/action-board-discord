@@ -15,6 +15,7 @@ const urlOrEmpty = z
 const bodySchema = z.object({
   twitter_url: urlOrEmpty.optional(),
   github_url: urlOrEmpty.optional(),
+  instagram_url: urlOrEmpty.optional(),
 });
 
 interface DiscordUser { id: string }

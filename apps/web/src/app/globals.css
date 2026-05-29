@@ -207,10 +207,6 @@ h1, h2, h3, h4, h5, h6 { font-weight: 800; margin: 0; }
   -webkit-overflow-scrolling: touch;
 }
 .h-scroll > * { scroll-snap-align: start; flex: 0 0 auto; }
-/* 全画面（広い画面）では横スクロールで末尾カードが見切れるため、折り返して全カードを表示する。 */
-@media (min-width: 1024px) {
-  .h-scroll { flex-wrap: wrap; overflow-x: visible; }
-}
 .h-scroll::-webkit-scrollbar { height: 6px; }
 .h-scroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 999px; }
 

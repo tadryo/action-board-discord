@@ -23,6 +23,7 @@ export default function ProfilePage({ user, accessToken }: { user: UserRow; acce
 
   const [twitter, setTwitter] = useState(user.twitter_url ?? "");
   const [github, setGithub] = useState(user.github_url ?? "");
+  const [instagram, setInstagram] = useState(user.instagram_url ?? "");
   const [editSocial, setEditSocial] = useState(false);
   const [savingSocial, setSavingSocial] = useState(false);
   const [socialError, setSocialError] = useState<string | null>(null);
@@ -53,7 +54,7 @@ export default function ProfilePage({ user, accessToken }: { user: UserRow; acce
     const res = await fetch("/api/me/social", {
       method: "PATCH",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` },
-      body: JSON.stringify({ twitter_url: twitter, github_url: github }),
+      body: JSON.stringify({ twitter_url: twitter, github_url: github, instagram_url: instagram }),
     });
     setSavingSocial(false);
     if (res.ok) {
@@ -111,17 +112,21 @@ export default function ProfilePage({ user, accessToken }: { user: UserRow; acce
               <input className="block w-full mt-1 border rounded-lg px-3 py-2 text-sm bg-white" style={{ borderColor: "var(--border)", color: "var(--fg)" }}
                 placeholder="https://github.com/..." value={github} onChange={(e) => setGithub(e.target.value)} />
             </label>
+            <label className="text-xs font-bold" style={{ color: "var(--muted-fg)" }}>Instagram URL
+              <input className="block w-full mt-1 border rounded-lg px-3 py-2 text-sm bg-white" style={{ borderColor: "var(--border)", color: "var(--fg)" }}
+                placeholder="https://instagram.com/..." value={instagram} onChange={(e) => setInstagram(e.target.value)} />
+            </label>
             <div className="flex gap-2 mt-1">
               <button disabled={savingSocial} onClick={saveSocial}
                 className="bg-gradient-primary text-white rounded-full px-4 py-2 text-sm font-bold transition-transform active:scale-95 disabled:opacity-50">
                 {savingSocial ? "保存中…" : "保存"}
               </button>
-              <button onClick={() => { setEditSocial(false); setTwitter(user.twitter_url ?? ""); setGithub(user.github_url ?? ""); }}
+              <button onClick={() => { setEditSocial(false); setTwitter(user.twitter_url ?? ""); setGithub(user.github_url ?? ""); setInstagram(user.instagram_url ?? ""); }}
                 className="rounded-full px-4 py-2 text-sm font-bold" style={{ background: "var(--secondary)", color: "var(--muted-fg)" }}>キャンセル</button>
             </div>
           </div>
         ) : (
-          <SocialLinks twitterUrl={twitter || null} githubUrl={github || null} emptyText="未設定（編集から追加できます）" />
+          <SocialLinks twitterUrl={twitter || null} githubUrl={github || null} instagramUrl={instagram || null} emptyText="未設定（編集から追加できます）" />
         )}
       </div>
 

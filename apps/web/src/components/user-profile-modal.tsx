@@ -18,6 +18,7 @@ interface PublicUser {
   created_at: string;
   twitter_url: string | null;
   github_url: string | null;
+  instagram_url: string | null;
 }
 
 interface PublicAchievement {
@@ -95,7 +96,7 @@ export default function UserProfileModal({ discordId, onClose }: { discordId: st
             </div>
 
             <div className="mt-3">
-              <SocialLinks twitterUrl={user.twitter_url} githubUrl={user.github_url} />
+              <SocialLinks twitterUrl={user.twitter_url} githubUrl={user.github_url} instagramUrl={user.instagram_url} />
             </div>
 
             {badges.length > 0 && (

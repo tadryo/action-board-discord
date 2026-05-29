@@ -14,9 +14,9 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ dis
   const admin = getSupabaseAdmin();
   const { data: user } = await admin
     .from("users")
-    .select("id, discord_user_id, username, avatar, total_points, created_at, twitter_url, github_url")
+    .select("id, discord_user_id, username, avatar, total_points, created_at, twitter_url, github_url, instagram_url")
     .eq("discord_user_id", discordId)
-    .maybeSingle<Pick<UserRow, "id" | "discord_user_id" | "username" | "avatar" | "total_points" | "created_at" | "twitter_url" | "github_url">>();
+    .maybeSingle<Pick<UserRow, "id" | "discord_user_id" | "username" | "avatar" | "total_points" | "created_at" | "twitter_url" | "github_url" | "instagram_url">>();
 
   if (!user) {
     return NextResponse.json({ error: "not found" }, { status: 404 });
