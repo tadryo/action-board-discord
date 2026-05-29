@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useDiscordActions } from "@/components/discord-provider";
 import { APP_NAME_DEFAULT, APP_TAGLINE_DEFAULT } from "@/lib/app-config";
 import MissionCard from "@/components/mission-card";
+import ProposeTaskModal from "@/components/propose-task-modal";
 import type { CategoryRow, MissionRow, MissionWithAchievements, UserRow } from "@/types/database";
 
 function CategorySection({ category, items, accessToken, onAchieved }: {
@@ -42,6 +43,7 @@ export default function MissionsPage({ user, accessToken }: Props) {
   const [groupLabelGeneral, setGroupLabelGeneral] = useState("みんなでやろう");
   const [groupLabelDept, setGroupLabelDept] = useState("チームタスク");
   const [activeGroup, setActiveGroup] = useState<"general" | "dept">("general");
+  const [showPropose, setShowPropose] = useState(false);
   const { recordAchievement } = useDiscordActions();
 
   useEffect(() => {
@@ -132,6 +134,9 @@ export default function MissionsPage({ user, accessToken }: Props) {
     .filter((g) => g.items.length > 0);
   const generalGroups = allGrouped.filter((g) => g.category.group_key !== "dept");
   const deptGroups = allGrouped.filter((g) => g.category.group_key === "dept");
+  const deptOptions = categories
+    .filter((c) => c.group_key === "dept" && c.department)
+    .map((c) => ({ slug: c.department as string, title: c.title }));
 
   return (
     <div className="pb-8">
@@ -181,6 +186,17 @@ export default function MissionsPage({ user, accessToken }: Props) {
           {activeGroup === "general" && generalGroups.map(({ category, items }) => (
             <CategorySection key={category.slug} category={category} items={items} accessToken={accessToken} onAchieved={handleAchieved} />
           ))}
+          {activeGroup === "dept" && (
+            <div className="px-5">
+              <button
+                onClick={() => setShowPropose(true)}
+                className="px-4 py-2 rounded-lg font-bold text-white text-sm"
+                style={{ background: "var(--primary)" }}
+              >
+                ＋ タスクを提案
+              </button>
+            </div>
+          )}
           {activeGroup === "dept" && deptGroups.map(({ category, items }) => (
             <CategorySection key={category.slug} category={category} items={items} accessToken={accessToken} onAchieved={handleAchieved} />
           ))}
@@ -189,6 +205,15 @@ export default function MissionsPage({ user, accessToken }: Props) {
           )}
         </div>
       </div>
+
+      {showPropose && (
+        <ProposeTaskModal
+          accessToken={accessToken}
+          departments={deptOptions}
+          onClose={() => setShowPropose(false)}
+          onSubmitted={() => {}}
+        />
+      )}
     </div>
   );
 }
