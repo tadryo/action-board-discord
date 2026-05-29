@@ -93,7 +93,7 @@ export default function MissionsPage({ user, accessToken }: Props) {
 
   return (
     <div className="pb-8">
-      <div className="bg-gradient-hero px-4 pt-6 pb-7">
+      <div className="bg-gradient-hero px-5 pt-6 pb-7">
         <div className="max-w-3xl mx-auto">
           <h1 className="text-2xl font-black" style={{ color: "#0a0a0a" }}>🎯 アクションボード</h1>
           <p className="text-sm mt-1 font-semibold" style={{ color: "#0f766e" }}>
@@ -114,7 +114,7 @@ export default function MissionsPage({ user, accessToken }: Props) {
       <div className="max-w-3xl mx-auto pt-5 flex flex-col gap-7">
         {grouped.map(({ category, items }) => (
           <section key={category.slug}>
-            <h2 className="text-[1.05rem] font-extrabold px-4 mb-1.5" style={{ color: "#111827" }}>
+            <h2 className="text-[1.05rem] font-extrabold px-5 mb-1.5" style={{ color: "#111827" }}>
               {category.title}
             </h2>
             <div className="h-scroll px-4">

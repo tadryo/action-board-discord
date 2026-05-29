@@ -27,7 +27,7 @@ export default function NavBar({ tab, onTabChange, username }: Props) {
         // モバイル(Discord)では上部バー+ノッチを避けるため固定オフセットを上乗せ。
         // env(safe-area-inset-top) が 0 を返す環境でもナビが隠れないようにする。
         paddingTop: mobile
-          ? "calc(env(safe-area-inset-top) + 3rem)"
+          ? "calc(env(safe-area-inset-top) + 3.75rem)"
           : "calc(0.625rem + env(safe-area-inset-top))",
       }}
     >
