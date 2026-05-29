@@ -67,7 +67,7 @@ export function DiscordProvider({ children }: { children: React.ReactNode }) {
           response_type: "code",
           state: "",
           prompt: "none",
-          scope: ["identify", "guilds"],
+          scope: ["identify", "guilds", "guilds.members.read"],
         });
 
         const tokenRes = await fetch("/api/token", {

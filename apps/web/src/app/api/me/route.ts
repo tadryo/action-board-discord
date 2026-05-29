@@ -11,7 +11,28 @@ const bodySchema = z.object({
 interface DiscordUser {
   id: string;
   username: string;
+  global_name: string | null;
   avatar: string | null;
+}
+
+interface GuildMember {
+  nick: string | null;
+  user?: { global_name: string | null; username: string };
+}
+
+// そのギルドでの表示名（サーバーニックネーム）を取得する。
+// 優先順: サーバーニックネーム > グローバル表示名 > ユーザー名。guilds.members.read スコープが必要。
+async function fetchGuildDisplayName(accessToken: string, guildId: string): Promise<string | null> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 5000);
+  const res = await fetch(`https://discord.com/api/users/@me/guilds/${guildId}/member`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+    signal: controller.signal,
+  }).catch(() => null).finally(() => clearTimeout(timeoutId));
+
+  if (!res?.ok) return null;
+  const member = await res.json() as GuildMember;
+  return member.nick || member.user?.global_name || member.user?.username || null;
 }
 
 export async function POST(req: NextRequest) {
@@ -41,10 +62,17 @@ export async function POST(req: NextRequest) {
 
   const discordUser = await discordRes.json() as DiscordUser;
 
+  // ギルド内ではサーバーニックネームを表示名にする（取得できなければグローバル名にフォールバック）
+  const fallbackName = discordUser.global_name || discordUser.username;
+  const displayName =
+    guild_id !== "dm"
+      ? (await fetchGuildDisplayName(accessToken, guild_id)) ?? fallbackName
+      : fallbackName;
+
   const { data: user, error } = await getSupabaseAdmin()
     .from("users")
     .upsert(
-      [{ discord_user_id: discordUser.id, username: discordUser.username, avatar: discordUser.avatar ?? null, guild_id }],
+      [{ discord_user_id: discordUser.id, username: displayName, avatar: discordUser.avatar ?? null, guild_id }],
       { onConflict: "discord_user_id" },
     )
     .select()
