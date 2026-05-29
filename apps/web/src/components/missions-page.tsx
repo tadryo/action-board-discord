@@ -39,6 +39,7 @@ export default function MissionsPage({ user, accessToken }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [appName, setAppName] = useState(APP_NAME_DEFAULT);
   const [appTagline, setAppTagline] = useState(APP_TAGLINE_DEFAULT);
+  const [activeGroup, setActiveGroup] = useState<"general" | "dept">("general");
   const { recordAchievement } = useDiscordActions();
 
   useEffect(() => {
@@ -148,27 +149,41 @@ export default function MissionsPage({ user, accessToken }: Props) {
         </div>
       </div>
 
-      <div className="max-w-3xl mx-auto pt-5 flex flex-col gap-7">
-        {generalGroups.map(({ category, items }) => (
-          <CategorySection key={category.slug} category={category} items={items} accessToken={accessToken} onAchieved={handleAchieved} />
-        ))}
+      <div className="max-w-3xl mx-auto pt-4">
+        <div className="flex gap-2 px-5 mb-5">
+          <button
+            onClick={() => setActiveGroup("general")}
+            className="px-4 py-1.5 rounded-full text-sm font-bold transition-colors"
+            style={activeGroup === "general"
+              ? { background: "var(--primary)", color: "#fff" }
+              : { background: "var(--card-bg)", color: "var(--muted)", border: "1px solid var(--border-soft)" }}
+          >
+            みんなでやろう
+          </button>
+          {deptGroups.length > 0 && (
+            <button
+              onClick={() => setActiveGroup("dept")}
+              className="px-4 py-1.5 rounded-full text-sm font-bold transition-colors"
+              style={activeGroup === "dept"
+                ? { background: "var(--primary)", color: "#fff" }
+                : { background: "var(--card-bg)", color: "var(--muted)", border: "1px solid var(--border-soft)" }}
+            >
+              部門タスク
+            </button>
+          )}
+        </div>
 
-        {deptGroups.length > 0 && (
-          <>
-            <div className="flex items-center gap-3 px-5">
-              <div className="flex-1 h-px" style={{ background: "var(--border-soft)" }} />
-              <span className="text-xs font-extrabold tracking-widest" style={{ color: "var(--muted)" }}>部門タスク</span>
-              <div className="flex-1 h-px" style={{ background: "var(--border-soft)" }} />
-            </div>
-            {deptGroups.map(({ category, items }) => (
-              <CategorySection key={category.slug} category={category} items={items} accessToken={accessToken} onAchieved={handleAchieved} />
-            ))}
-          </>
-        )}
-
-        {missions.length === 0 && (
-          <p className="text-sm text-center py-8" style={{ color: "var(--muted)" }}>ミッションがありません</p>
-        )}
+        <div className="flex flex-col gap-7">
+          {activeGroup === "general" && generalGroups.map(({ category, items }) => (
+            <CategorySection key={category.slug} category={category} items={items} accessToken={accessToken} onAchieved={handleAchieved} />
+          ))}
+          {activeGroup === "dept" && deptGroups.map(({ category, items }) => (
+            <CategorySection key={category.slug} category={category} items={items} accessToken={accessToken} onAchieved={handleAchieved} />
+          ))}
+          {missions.length === 0 && (
+            <p className="text-sm text-center py-8" style={{ color: "var(--muted)" }}>ミッションがありません</p>
+          )}
+        </div>
       </div>
     </div>
   );
