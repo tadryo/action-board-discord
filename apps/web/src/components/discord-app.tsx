@@ -48,7 +48,11 @@ function AppContent() {
           style={{ paddingTop: "calc(env(safe-area-inset-top) + 3.75rem)" }}
         >
           <div className="max-w-3xl mx-auto">
-            <button onClick={() => setShowAdmin(false)} className="text-sm font-bold mb-2 inline-flex items-center gap-1" style={{ color: "var(--primary-700)" }}>← 戻る</button>
+            <button
+              onClick={() => setShowAdmin(false)}
+              className="text-sm font-bold mb-2 inline-flex items-center gap-1 rounded-full px-3 py-1.5 transition-transform active:scale-95"
+              style={{ background: "rgba(255,255,255,0.7)", color: "var(--primary-700)", boxShadow: "var(--shadow-soft)" }}
+            >← 戻る</button>
             <h1 className="text-2xl font-black" style={{ color: "#0a0a0a" }}>🛠 承認・管理</h1>
             <p className="text-sm mt-1 font-semibold" style={{ color: "var(--primary-deep)" }}>提案の承認やミッション・権限を管理します。</p>
           </div>

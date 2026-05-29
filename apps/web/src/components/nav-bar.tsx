@@ -46,7 +46,7 @@ export default function NavBar({ tab, onTabChange, username, onAdmin }: Props) {
         {onAdmin && (
           <button onClick={onAdmin} className="tab flex items-center gap-1.5">
             <span>🛠</span>
-            <span className="hidden sm:inline">承認</span>
+            <span className="hidden sm:inline">承認・管理</span>
           </button>
         )}
       </div>

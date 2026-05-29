@@ -23,8 +23,8 @@ function CategorySection({ category, items, accessToken, onAchieved, onPropose }
         {onPropose && (
           <button
             onClick={onPropose}
-            className="shrink-0 px-3 py-1.5 rounded-lg font-bold text-white text-xs"
-            style={{ background: "var(--primary)" }}
+            className="shrink-0 bg-gradient-primary text-white rounded-full px-4 py-1.5 font-bold text-xs transition-transform active:scale-95"
+            style={{ boxShadow: "var(--shadow-soft)" }}
           >
             ＋ タスクを提案
           </button>
