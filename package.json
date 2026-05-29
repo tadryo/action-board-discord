@@ -13,8 +13,7 @@
     "lint": "npm run lint -w apps/web",
     "typecheck": "npm run typecheck -w apps/web",
     "typecheck:web": "npm run typecheck -w apps/web",
-    "sync-missions": "npm run sync-missions -w apps/web",
-    "register-commands": "npm run register-commands -w apps/web"
+    "sync-missions": "npm run sync-missions -w apps/web"
   },
   "overrides": {
     "@types/react": "^19.2.15",
